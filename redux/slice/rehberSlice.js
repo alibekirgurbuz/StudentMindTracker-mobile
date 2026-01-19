@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 
-const API_BASE_URL = 'http://10.101.160.168:5000/api';
+const API_BASE_URL = 'https://studentmindtracker-server-1.onrender.com';
 
 // Normalization fonksiyonu - farklı formatları tutarlı hale getirir
 const normalizeAnket = (anket) => {
@@ -25,7 +25,7 @@ export const getRehberDashboardData = createAsyncThunk(
   'rehber/getRehberDashboardData',
   async (rehberId, { rejectWithValue }) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/rehber/${rehberId}`, {
+      const response = await fetch(`${API_BASE_URL}/api/rehber/${rehberId}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -49,7 +49,7 @@ export const getRehberOgrenciler = createAsyncThunk(
   'rehber/getRehberOgrenciler',
   async (rehberId, { rejectWithValue }) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/ogrenci/rehber/${rehberId}`, {
+      const response = await fetch(`${API_BASE_URL}/api/ogrenci/rehber/${rehberId}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -73,7 +73,7 @@ export const getRehberAnketler = createAsyncThunk(
   'rehber/getRehberAnketler',
   async (rehberId, { rejectWithValue }) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/surveys/rehber/${rehberId}`, {
+      const response = await fetch(`${API_BASE_URL}/api/surveys/rehber/${rehberId}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -81,7 +81,7 @@ export const getRehberAnketler = createAsyncThunk(
       });
 
       const data = await response.json();
-      
+
       console.log('=== DEBUG: getRehberAnketler API Response ===');
       console.log('API Response:', data);
       console.log('data.anketler:', data.anketler);
@@ -93,10 +93,10 @@ export const getRehberAnketler = createAsyncThunk(
 
       // Anketleri normalize et
       const normalizedAnketler = data.anketler ? data.anketler.map(normalizeAnket) : [];
-      
+
       console.log('Normalized anketler:', normalizedAnketler);
       console.log('Normalized anketler length:', normalizedAnketler.length);
-      
+
       return {
         ...data,
         anketler: normalizedAnketler
@@ -111,7 +111,7 @@ export const createRehberAnket = createAsyncThunk(
   'rehber/createRehberAnket',
   async ({ rehberId, anketData }, { rejectWithValue }) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/surveys`, {
+      const response = await fetch(`${API_BASE_URL}/api/surveys`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -130,7 +130,7 @@ export const createRehberAnket = createAsyncThunk(
 
       // Yeni oluşturulan anketi normalize et
       const normalizedAnket = data.data ? normalizeAnket(data.data) : null;
-      
+
       return {
         ...data,
         data: normalizedAnket
@@ -145,7 +145,7 @@ export const updateRehberAnket = createAsyncThunk(
   'rehber/updateRehberAnket',
   async ({ anketId, anketData }, { rejectWithValue }) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/surveys/${anketId}`, {
+      const response = await fetch(`${API_BASE_URL}/api/surveys/${anketId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -161,7 +161,7 @@ export const updateRehberAnket = createAsyncThunk(
 
       // Güncellenen anketi normalize et
       const normalizedAnket = data.data ? normalizeAnket(data.data) : null;
-      
+
       return {
         ...data,
         data: normalizedAnket
@@ -176,7 +176,7 @@ export const deleteRehberAnket = createAsyncThunk(
   'rehber/deleteRehberAnket',
   async (anketId, { rejectWithValue }) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/surveys/${anketId}`, {
+      const response = await fetch(`${API_BASE_URL}/api/surveys/${anketId}`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
@@ -200,7 +200,7 @@ export const getAnketSonuclari = createAsyncThunk(
   'rehber/getAnketSonuclari',
   async (anketId, { rejectWithValue }) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/surveys/${anketId}/results`, {
+      const response = await fetch(`${API_BASE_URL}/api/surveys/${anketId}/results`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -224,7 +224,7 @@ export const updateRehberDetay = createAsyncThunk(
   'rehber/updateRehberDetay',
   async ({ rehberId, detayData }, { rejectWithValue }) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/rehber/${rehberId}`, {
+      const response = await fetch(`${API_BASE_URL}/api/rehber/${rehberId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -299,7 +299,7 @@ const rehberSlice = createSlice({
         state.isLoading = false;
         state.error = action.payload;
       })
-      
+
       // Get Rehber Ogrenciler
       .addCase(getRehberOgrenciler.pending, (state) => {
         state.isLoading = true;
@@ -315,7 +315,7 @@ const rehberSlice = createSlice({
         state.isLoading = false;
         state.error = action.payload;
       })
-      
+
       // Get Rehber Anketler
       .addCase(getRehberAnketler.pending, (state) => {
         state.isLoading = true;
@@ -325,26 +325,26 @@ const rehberSlice = createSlice({
         state.isLoading = false;
         // API'den anketler action.payload.anketler olarak geliyor
         state.anketler = action.payload.anketler || [];
-        
+
         console.log('=== DEBUG: Redux State Güncelleniyor ===');
         console.log('state.anketler:', state.anketler);
         console.log('state.anketler.length:', state.anketler?.length);
-        
+
         // İstatistikleri güncelle
         const anketlerArray = action.payload.anketler || [];
         const aktifAnket = anketlerArray.filter(anket => anket.isActive).length;
         const tamamlananAnket = anketlerArray.filter(anket => !anket.isActive).length;
-        
+
         state.dashboardStats.aktifAnket = aktifAnket;
         state.dashboardStats.tamamlananAnket = tamamlananAnket;
-        
+
         state.error = null;
       })
       .addCase(getRehberAnketler.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload;
       })
-      
+
       // Create Rehber Anket
       .addCase(createRehberAnket.pending, (state) => {
         state.isLoading = true;
@@ -360,7 +360,7 @@ const rehberSlice = createSlice({
         state.isLoading = false;
         state.error = action.payload;
       })
-      
+
       // Update Rehber Anket
       .addCase(updateRehberAnket.pending, (state) => {
         state.isLoading = true;
@@ -378,7 +378,7 @@ const rehberSlice = createSlice({
         state.isLoading = false;
         state.error = action.payload;
       })
-      
+
       // Delete Rehber Anket
       .addCase(deleteRehberAnket.pending, (state) => {
         state.isLoading = true;
@@ -394,7 +394,7 @@ const rehberSlice = createSlice({
         state.isLoading = false;
         state.error = action.payload;
       })
-      
+
       // Get Anket Sonuclari
       .addCase(getAnketSonuclari.pending, (state) => {
         state.isLoading = true;
@@ -409,7 +409,7 @@ const rehberSlice = createSlice({
         state.isLoading = false;
         state.error = action.payload;
       })
-      
+
       // Update Rehber Detay
       .addCase(updateRehberDetay.pending, (state) => {
         state.isLoading = true;

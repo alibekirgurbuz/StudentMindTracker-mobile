@@ -69,6 +69,18 @@ export const deleteUserData = createAsyncThunk(
   }
 );
 
+export const getAdminStatistics = createAsyncThunk(
+  'admin/getAdminStatistics',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await authService.getAdminStatistics();
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.message);
+    }
+  }
+);
+
 const initialState = {
   dashboardData: {
     allUsers: [],
@@ -86,7 +98,11 @@ const initialState = {
   statistics: {
     totalUsers: 0,
     activeUsers: 0,
-    newUsersThisMonth: 0
+    newUsersThisMonth: 0,
+    classCount: 0,
+    surveyCount: 0,
+    resultCount: 0,
+    classes: []
   }
 };
 
@@ -222,6 +238,30 @@ const adminSlice = createSlice({
         state.error = null;
       })
       .addCase(deleteUserData.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      })
+      
+      // Get Admin Statistics
+      .addCase(getAdminStatistics.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(getAdminStatistics.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.statistics = {
+          totalUsers: action.payload.totalUsers,
+          classCount: action.payload.classCount,
+          surveyCount: action.payload.surveyCount,
+          resultCount: action.payload.resultCount,
+          classes: action.payload.classes
+        };
+        state.dashboardData.studentCount = action.payload.studentCount;
+        state.dashboardData.rehberCount = action.payload.rehberCount;
+        state.dashboardData.adminCount = action.payload.adminCount;
+        state.error = null;
+      })
+      .addCase(getAdminStatistics.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload;
       });

@@ -22,7 +22,7 @@ const MotivationMessage = () => {
 
   return (
     <LinearGradient
-      colors={['#667eea', '#764ba2']}
+      colors={['#49b66f', '#1db4e2']}
       style={styles.container}
     >
       <View style={styles.content}>

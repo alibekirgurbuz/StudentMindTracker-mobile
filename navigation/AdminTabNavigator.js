@@ -12,7 +12,7 @@ const Tab = createBottomTabNavigator();
 
 const AdminTabNavigator = () => {
   const insets = useSafeAreaInsets();
-  
+
   // Safe area için dinamik yükseklik hesaplama
   const getTabBarHeight = () => {
     const baseHeight = 70;
@@ -36,7 +36,7 @@ const AdminTabNavigator = () => {
 
           return <Ionicons name={iconName} size={size} color={color} />;
         },
-        tabBarActiveTintColor: '#667eea',
+        tabBarActiveTintColor: '#49b66f',
         tabBarInactiveTintColor: 'gray',
         tabBarStyle: {
           backgroundColor: '#fff',
@@ -69,22 +69,22 @@ const AdminTabNavigator = () => {
         headerShown: false,
       })}
     >
-      <Tab.Screen 
-        name="AdminMain" 
+      <Tab.Screen
+        name="AdminMain"
         component={AdminMainScreen}
         options={{
           tabBarLabel: 'Ana Sayfa',
         }}
       />
-      <Tab.Screen 
-        name="Survey" 
+      <Tab.Screen
+        name="Survey"
         component={SurveyScreen}
         options={{
           tabBarLabel: 'Anket',
         }}
       />
-      <Tab.Screen 
-        name="Profile" 
+      <Tab.Screen
+        name="Profile"
         component={ProfileScreen}
         options={{
           tabBarLabel: 'Profil',

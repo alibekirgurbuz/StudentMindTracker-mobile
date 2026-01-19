@@ -21,11 +21,11 @@ const { width, height } = Dimensions.get('window');
 const SurveyResults = ({ navigation, route }) => {
   const dispatch = useDispatch();
   const { anketId } = route.params;
-  
+
   const { anketSonuclari, isLoading, error } = useSelector(state => state.anketSonuc);
   const { anketler } = useSelector(state => state.rehber);
   const { currentUser } = useSelector(state => state.user || {});
-  
+
   const [selectedAnket, setSelectedAnket] = useState(null);
   const [sonuclar, setSonuclar] = useState(null);
   const [selectedTab, setSelectedTab] = useState('sinif'); // 'sinif', 'ogrenci', 'grafik'
@@ -66,7 +66,7 @@ const SurveyResults = ({ navigation, route }) => {
   const renderTabButtons = () => {
     return (
       <View style={styles.tabContainer}>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={[styles.tabButton, selectedTab === 'sinif' && styles.tabButtonActive]}
           onPress={() => setSelectedTab('sinif')}
         >
@@ -74,8 +74,8 @@ const SurveyResults = ({ navigation, route }) => {
             Sınıf
           </Text>
         </TouchableOpacity>
-        
-        <TouchableOpacity 
+
+        <TouchableOpacity
           style={[styles.tabButton, selectedTab === 'ogrenci' && styles.tabButtonActive]}
           onPress={() => setSelectedTab('ogrenci')}
         >
@@ -83,8 +83,8 @@ const SurveyResults = ({ navigation, route }) => {
             Öğrenci
           </Text>
         </TouchableOpacity>
-        
-        <TouchableOpacity 
+
+        <TouchableOpacity
           style={[styles.tabButton, styles.tabButtonInactive]}
           onPress={() => Alert.alert('Grafik', 'İstatistik grafikleri yakında eklenecek')}
         >
@@ -99,13 +99,13 @@ const SurveyResults = ({ navigation, route }) => {
   const renderIstatistikler = () => {
     // Rehbere ait toplam öğrenci sayısı
     const toplamOgrenci = currentUser?.rehberDetay?.ogrenciler?.length || 0;
-    
+
     // Anketi tamamlayan öğrenci sayısı
     const tamamlananSayisi = sonuclar?.length || 0;
-    
+
     // Tamamlanma yüzdesi
-    const tamamlanmaYuzdesi = toplamOgrenci > 0 
-      ? Math.round((tamamlananSayisi / toplamOgrenci) * 100) 
+    const tamamlanmaYuzdesi = toplamOgrenci > 0
+      ? Math.round((tamamlananSayisi / toplamOgrenci) * 100)
       : 0;
 
     return (
@@ -114,12 +114,12 @@ const SurveyResults = ({ navigation, route }) => {
           <Text style={styles.statBoxLabel}>Toplam Öğrenci</Text>
           <Text style={styles.statBoxValue}>{toplamOgrenci}</Text>
         </View>
-        
+
         <View style={styles.statBox}>
           <Text style={styles.statBoxLabel}>Tamamlanan</Text>
           <Text style={styles.statBoxValue}>{tamamlananSayisi}</Text>
         </View>
-        
+
         <View style={[styles.statBox, styles.statBoxPercentage]}>
           <Text style={styles.statBoxPercentageValue}>%{tamamlanmaYuzdesi}</Text>
         </View>
@@ -130,7 +130,7 @@ const SurveyResults = ({ navigation, route }) => {
   const renderSinifFiltre = () => {
     // Sonuçlardan benzersiz sınıfları çıkar
     const siniflar = [...new Set(sonuclar?.map(s => s.ogrenciInfo?.sinif).filter(Boolean))] || [];
-    
+
     if (siniflar.length === 0) {
       return null;
     }
@@ -146,7 +146,7 @@ const SurveyResults = ({ navigation, route }) => {
               Tümü
             </Text>
           </TouchableOpacity>
-          
+
           {siniflar.map((sinif) => (
             <TouchableOpacity
               key={sinif}
@@ -167,8 +167,8 @@ const SurveyResults = ({ navigation, route }) => {
     if (!sonuclar || sonuclar.length === 0 || !selectedAnket) return null;
 
     // Seçili sınıfa göre sonuçları filtrele
-    const filteredSonuclar = selectedSinif === 'all' 
-      ? sonuclar 
+    const filteredSonuclar = selectedSinif === 'all'
+      ? sonuclar
       : sonuclar.filter(s => s.ogrenciInfo?.sinif === selectedSinif);
 
     if (filteredSonuclar.length === 0) {
@@ -184,7 +184,7 @@ const SurveyResults = ({ navigation, route }) => {
       const soruCevaplari = filteredSonuclar.map(sonuc => {
         // cevaplar array formatında olabilir
         const cevaplarArray = sonuc.cevaplar || sonuc.sonuc || [];
-        
+
         // Index bazlı cevapları kontrol et
         if (Array.isArray(cevaplarArray) && cevaplarArray[soruIndex]) {
           return {
@@ -193,17 +193,17 @@ const SurveyResults = ({ navigation, route }) => {
             completedAt: sonuc.completedAt
           };
         }
-        
+
         return null;
       }).filter(Boolean);
-      
+
       return (
         <View key={soruIndex} style={styles.soruCard}>
           <View style={styles.soruHeader}>
             <Text style={styles.soruNumber}>Soru {soruIndex + 1}</Text>
             <Text style={styles.soruText}>{soru.soru}</Text>
           </View>
-          
+
           <View style={styles.cevapContainer}>
             {soruCevaplari.length > 0 ? (
               soruCevaplari.map((cevap, cevapIndex) => (
@@ -252,18 +252,18 @@ const SurveyResults = ({ navigation, route }) => {
         {/* Tamamlanan öğrenciler */}
         {tamamlananlar.map((sonuc, index) => {
           const ogrenciInfo = sonuc.ogrenciInfo;
-          const ogrenciAdi = ogrenciInfo 
-            ? `${ogrenciInfo.ad} ${ogrenciInfo.soyad}` 
+          const ogrenciAdi = ogrenciInfo
+            ? `${ogrenciInfo.ad} ${ogrenciInfo.soyad}`
             : `Öğrenci ${index + 1}`;
-          
+
           return (
             <View key={sonuc.id || index} style={styles.ogrenciCard}>
               <View style={styles.ogrenciLeft}>
                 <View style={[styles.ogrenciIcon, { backgroundColor: '#D4EDDA' }]}>
-                  <Ionicons 
-                    name="checkmark-circle" 
-                    size={20} 
-                    color="#28a745" 
+                  <Ionicons
+                    name="checkmark-circle"
+                    size={20}
+                    color="#28a745"
                   />
                 </View>
                 <View style={styles.ogrenciInfo}>
@@ -283,18 +283,18 @@ const SurveyResults = ({ navigation, route }) => {
         {/* Tamamlanmayan öğrenciler */}
         {tamamlanmayanlar.map((sonuc, index) => {
           const ogrenciInfo = sonuc.ogrenciInfo;
-          const ogrenciAdi = ogrenciInfo 
-            ? `${ogrenciInfo.ad} ${ogrenciInfo.soyad}` 
+          const ogrenciAdi = ogrenciInfo
+            ? `${ogrenciInfo.ad} ${ogrenciInfo.soyad}`
             : `Öğrenci ${index + 1}`;
-          
+
           return (
             <View key={sonuc.id || `incomplete-${index}`} style={styles.ogrenciCard}>
               <View style={styles.ogrenciLeft}>
                 <View style={[styles.ogrenciIcon, { backgroundColor: '#F8D7DA' }]}>
-                  <Ionicons 
-                    name="close-circle" 
-                    size={20} 
-                    color="#dc3545" 
+                  <Ionicons
+                    name="close-circle"
+                    size={20}
+                    color="#dc3545"
                   />
                 </View>
                 <View style={styles.ogrenciInfo}>
@@ -317,7 +317,7 @@ const SurveyResults = ({ navigation, route }) => {
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#667eea" />
+        <ActivityIndicator size="large" color="#49b66f" />
         <Text style={styles.loadingText}>Anket sonuçları yükleniyor...</Text>
       </View>
     );
@@ -326,9 +326,9 @@ const SurveyResults = ({ navigation, route }) => {
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="transparent" translucent={true} />
-      
+
       <LinearGradient
-        colors={['#667eea', '#764ba2']}
+        colors={['#49b66f', '#1db4e2']}
         style={styles.header}
       >
         <SafeAreaView>
@@ -351,39 +351,37 @@ const SurveyResults = ({ navigation, route }) => {
           </View>
         </SafeAreaView>
       </LinearGradient>
-      
-      <SafeAreaView style={styles.safeArea}>
-        <View style={styles.contentContainer}>
-          {/* Üst İstatistik Kartları */}
-          {renderIstatistikler()}
-          
-          {/* Tab Butonları */}
-          {renderTabButtons()}
-          
-          {/* İçerik - Seçili Tab'a göre */}
-          <ScrollView
-            style={styles.scrollView}
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={styles.scrollContent}
-          >
-            {selectedTab === 'sinif' && (
-              <>
-                {renderSinifFiltre()}
-                {renderSoruSonuclari()}
-              </>
-            )}
-            {selectedTab === 'ogrenci' && renderOgrenciListesi()}
-            {selectedTab === 'grafik' && (
-              <View style={styles.emptyContainer}>
-                <Ionicons name="bar-chart-outline" size={64} color="#999" />
-                <Text style={styles.emptyTitle}>Grafik Görünümü</Text>
-                <Text style={styles.emptySubtitle}>
-                  İstatistik grafikleri yakında eklenecek
-                </Text>
-              </View>
-            )}
-          </ScrollView>
-        </View>
+
+      <SafeAreaView style={styles.safeArea} edges={['bottom']}>
+        {/* Sabit İstatistik Kartları */}
+        {renderIstatistikler()}
+
+        {/* Sabit Tab Butonları */}
+        {renderTabButtons()}
+
+        {/* Sabit Sınıf Filtresi - Sadece 'sinif' tab'ı seçiliyse göster */}
+        {selectedTab === 'sinif' && renderSinifFiltre()}
+
+        {/* Scroll İçeriği - Seçili Tab'a göre */}
+        <ScrollView
+          style={styles.scrollView}
+          showsVerticalScrollIndicator={false}
+          contentInsetAdjustmentBehavior="never"
+          automaticallyAdjustContentInsets={false}
+          contentContainerStyle={styles.scrollContent}
+        >
+          {selectedTab === 'sinif' && renderSoruSonuclari()}
+          {selectedTab === 'ogrenci' && renderOgrenciListesi()}
+          {selectedTab === 'grafik' && (
+            <View style={styles.emptyContainer}>
+              <Ionicons name="bar-chart-outline" size={64} color="#999" />
+              <Text style={styles.emptyTitle}>Grafik Görünümü</Text>
+              <Text style={styles.emptySubtitle}>
+                İstatistik grafikleri yakında eklenecek
+              </Text>
+            </View>
+          )}
+        </ScrollView>
       </SafeAreaView>
     </View>
   );
@@ -397,6 +395,8 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: '#f5f7fa',
+    paddingTop: 0,
+    marginTop: 10,
   },
   header: {
     paddingHorizontal: 20,
@@ -461,16 +461,16 @@ const styles = StyleSheet.create({
   // Yeni Üst İstatistik Kartları
   statsTopContainer: {
     flexDirection: 'row',
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 10,
-    gap: 10,
+    paddingHorizontal: 16,
+    paddingTop: 0,
+    paddingBottom: 8,
+    gap: 8,
   },
   statBox: {
     flex: 1,
     backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 16,
+    borderRadius: 10,
+    padding: 13,
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#000',
@@ -480,14 +480,14 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   statBoxLabel: {
-    fontSize: 12,
+    fontSize: 10,
     color: '#666',
     fontWeight: '500',
-    marginBottom: 8,
+    marginBottom: 6,
     textAlign: 'center',
   },
   statBoxValue: {
-    fontSize: 32,
+    fontSize: 26,
     fontWeight: '700',
     color: '#333',
   },
@@ -495,7 +495,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#28a745',
   },
   statBoxPercentageValue: {
-    fontSize: 32,
+    fontSize: 26,
     fontWeight: '700',
     color: '#fff',
   },
@@ -503,7 +503,7 @@ const styles = StyleSheet.create({
   tabContainer: {
     flexDirection: 'row',
     paddingHorizontal: 20,
-    paddingVertical: 10,
+    paddingVertical: 6,
     gap: 8,
   },
   tabButton: {
@@ -587,7 +587,7 @@ const styles = StyleSheet.create({
   // Sınıf Filtresi
   sinifFilterContainer: {
     paddingHorizontal: 20,
-    paddingVertical: 10,
+    paddingVertical: 6,
   },
   sinifChip: {
     paddingHorizontal: 16,
@@ -599,8 +599,8 @@ const styles = StyleSheet.create({
     borderColor: '#e0e0e0',
   },
   sinifChipActive: {
-    backgroundColor: '#667eea',
-    borderColor: '#667eea',
+    backgroundColor: '#49b66f',
+    borderColor: '#49b66f',
   },
   sinifChipText: {
     fontSize: 14,
@@ -673,7 +673,7 @@ const styles = StyleSheet.create({
   },
   soruNumber: {
     fontSize: 12,
-    color: '#667eea',
+    color: '#49b66f',
     fontWeight: '600',
     marginBottom: 4,
   },

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,7 +7,8 @@ import {
   TouchableOpacity,
   Dimensions,
   StatusBar,
-  Alert
+  Alert,
+  Modal
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -25,6 +26,51 @@ const MainScreen = ({ navigation }) => {
 
   const dispatch = useDispatch();
   const { currentUser } = useSelector(state => state.user || {});
+
+  // State for completed tests and mood
+  const [completedTests, setCompletedTests] = useState(0);
+  const [selectedMood, setSelectedMood] = useState(null);
+  const [moodModalVisible, setMoodModalVisible] = useState(false);
+
+  // Mood options with emojis
+  const moodOptions = [
+    { id: 1, emoji: '😊', label: 'Mutlu', color: '#4CAF50' },
+    { id: 2, emoji: '😐', label: 'Normal', color: '#FFC107' },
+    { id: 3, emoji: '😢', label: 'Üzgün', color: '#2196F3' },
+    { id: 4, emoji: '😡', label: 'Kızgın', color: '#F44336' },
+    { id: 5, emoji: '😴', label: 'Yorgun', color: '#9C27B0' }
+  ];
+
+  // Load completed tests count from API
+  useEffect(() => {
+    const fetchCompletedTests = async () => {
+      try {
+        if (currentUser?.id || currentUser?._id) {
+          const userId = currentUser.id || currentUser._id;
+          const response = await fetch(`https://studentmindtracker-server-1.onrender.com/api/ogrenci/${userId}/anket-sonuclari`);
+          const data = await response.json();
+
+          if (data.success && data.data) {
+            setCompletedTests(data.data.length);
+          }
+        }
+      } catch (error) {
+        console.error('Tamamlanan anketler yüklenirken hata:', error);
+        // Hata durumunda varsayılan değer
+        setCompletedTests(0);
+      }
+    };
+
+    fetchCompletedTests();
+  }, [currentUser]);
+
+  // Handle mood selection
+  const handleMoodSelect = (mood) => {
+    setSelectedMood(mood);
+    setMoodModalVisible(false);
+    Alert.alert('Ruh Hali Kaydedildi', `Bugünkü ruh haliniz: ${mood.label} ${mood.emoji}`);
+    // TODO: Save mood to API
+  };
 
   // Güncel tarih bilgisini al
   const getCurrentDate = () => {
@@ -68,9 +114,9 @@ const MainScreen = ({ navigation }) => {
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="transparent" translucent={true} />
-      
+
       <LinearGradient
-        colors={['#667eea', '#764ba2']}
+        colors={['#49b66f', '#1db4e2']}
         style={styles.header}
       >
         <View style={styles.headerContent}>
@@ -88,7 +134,7 @@ const MainScreen = ({ navigation }) => {
       </LinearGradient>
 
       <SafeAreaView style={styles.safeArea}>
-        <ScrollView 
+        <ScrollView
           style={styles.content}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.scrollContent}
@@ -97,112 +143,150 @@ const MainScreen = ({ navigation }) => {
           <View style={styles.motivationWrapper}>
             <MotivationMessage />
           </View>
-          
-        <View style={styles.dashboard}>
-          {/* İstatistik Kartları */}
-          <View style={styles.statsContainer}>
-            <Text style={styles.sectionTitle}>Genel Bakış</Text>
-            <View style={styles.statsGrid}>
-              <StatCard
-                title="Bugünün Nasıldı?..."
-                value={getCurrentDate()}
-                icon="calendar-outline"
-                color="#4CAF50"
-                onPress={() => Alert.alert('Öğrenciler', 'Öğrenci listesi açılacak')}
-              />
-              <StatCard
-                title="Günün Ruh Hali"
-                value="12"
-                icon="happy-outline"
-                color="#2196F3"
-                onPress={() => Alert.alert('Kurslar', 'Kurs listesi açılacak')}
-              />
-              <StatCard
-                title="Tamamlanan Test"
-                value="45"
-                icon="clipboard-outline"
-                color="#FF9800"
-                onPress={() => Alert.alert('Testler', 'Test listesi açılacak')}
-              />
-              <StatCard
-                title="Dikkatni Arttır"
-                value="87.5"
-                icon="trophy-outline"
-                color="#9C27B0"
-                onPress={() => Alert.alert('Başarılar', 'Başarı grafikleri açılacak')}
-              />
-            </View>
-          </View>
 
-          {/* Hızlı Eylemler */}
-          <View style={styles.quickActionsContainer}>
-            <Text style={styles.sectionTitle}>Oyunlar</Text>
-            <View style={styles.quickActionsGrid}>
-              <QuickAction
-                title="Hafıza Kartı"
-                icon="layers-outline"
-                color="#4CAF50"
-                onPress={() => Alert.alert('Hafıza Kartı', 'Hafıza kartı oyunu başlatılacak')}
-              />
-              <QuickAction
-                title="Balonu Şişir"
-                icon="balloon-outline"
-                color="#2196F3"
-                onPress={() => Alert.alert('Balonu Şişir', 'Balonu şişir oyunu başlatılacak')}
-              />
-              <QuickAction
-                title="Problem Çözme"
-                icon="bulb-outline"
-                color="#FF9800"
-                onPress={() => Alert.alert('Problem Çözme', 'Problem çözme oyunu başlatılacak')}
-              />
-              <QuickAction
-                title="İngilizce Kelime"
-                icon="book-outline"
-                color="#9C27B0"
-                onPress={() => Alert.alert('İngilizce Kelime', 'İngilizce kelime oyunu başlatılacak')}
-              />
+          <View style={styles.dashboard}>
+            {/* İstatistik Kartları */}
+            <View style={styles.statsContainer}>
+              <Text style={styles.sectionTitle}>Genel Bakış</Text>
+              <View style={styles.statsGrid}>
+                <StatCard
+                  title="Bugünün Nasıldı?..."
+                  value={getCurrentDate()}
+                  icon="calendar-outline"
+                  color="#4CAF50"
+                  onPress={() => Alert.alert('Öğrenciler', 'Öğrenci listesi açılacak')}
+                />
+                <StatCard
+                  title="Günün Ruh Hali"
+                  value={selectedMood ? selectedMood.emoji : '😊'}
+                  icon="happy-outline"
+                  color="#2196F3"
+                  onPress={() => setMoodModalVisible(true)}
+                />
+                <StatCard
+                  title="Tamamlanan Test"
+                  value={completedTests.toString()}
+                  icon="clipboard-outline"
+                  color="#FF9800"
+                  onPress={() => Alert.alert('Testler', `${completedTests} test tamamlandı`)}
+                />
+                <StatCard
+                  title="Dikkatni Arttır"
+                  value="87.5"
+                  icon="trophy-outline"
+                  color="#9C27B0"
+                  onPress={() => Alert.alert('Başarılar', 'Başarı grafikleri açılacak')}
+                />
+              </View>
             </View>
-          </View>
 
-          {/* Son Aktiviteler */}
-          <View style={styles.recentContainer}>
-            <Text style={styles.sectionTitle}>Son Aktiviteler</Text>
-            <View style={styles.activityList}>
-              <View style={styles.activityItem}>
-                <View style={[styles.activityIcon, { backgroundColor: '#4CAF50' }]}>
-                  <Ionicons name="person-add" size={16} color="#fff" />
-                </View>
-                <View style={styles.activityContent}>
-                  <Text style={styles.activityTitle}>Yeni öğrenci eklendi</Text>
-                  <Text style={styles.activityTime}>2 saat önce</Text>
-                </View>
+            {/* Hızlı Eylemler */}
+            <View style={styles.quickActionsContainer}>
+              <Text style={styles.sectionTitle}>Oyunlar</Text>
+              <View style={styles.quickActionsGrid}>
+                <QuickAction
+                  title="Hafıza Kartı"
+                  icon="layers-outline"
+                  color="#4CAF50"
+                  onPress={() => navigation.navigate('MemoryCard')}
+                />
+                <QuickAction
+                  title="Kelime Bulmaca"
+                  icon="git-branch-outline"
+                  color="#2196F3"
+                  onPress={() => navigation.navigate('DecisionGame')}
+                />
+                <QuickAction
+                  title="Problem Çözme"
+                  icon="bulb-outline"
+                  color="#FF9800"
+                  onPress={() => navigation.navigate('ProblemSolving')}
+                />
+                <QuickAction
+                  title="İngilizce Kelime"
+                  icon="book-outline"
+                  color="#9C27B0"
+                  onPress={() => navigation.navigate('EnglishWords')}
+                />
               </View>
-              
-              <View style={styles.activityItem}>
-                <View style={[styles.activityIcon, { backgroundColor: '#2196F3' }]}>
-                  <Ionicons name="clipboard" size={16} color="#fff" />
+            </View>
+
+            {/* Son Aktiviteler */}
+            <View style={styles.recentContainer}>
+              <Text style={styles.sectionTitle}>Son Aktiviteler</Text>
+              <View style={styles.activityList}>
+                <View style={styles.activityItem}>
+                  <View style={[styles.activityIcon, { backgroundColor: '#4CAF50' }]}>
+                    <Ionicons name="person-add" size={16} color="#fff" />
+                  </View>
+                  <View style={styles.activityContent}>
+                    <Text style={styles.activityTitle}>Sınıfa yeni öğrenci katıldı.</Text>
+                    <Text style={styles.activityTime}>2 saat önce</Text>
+                  </View>
                 </View>
-                <View style={styles.activityContent}>
-                  <Text style={styles.activityTitle}>Matematik testi tamamlandı</Text>
-                  <Text style={styles.activityTime}>4 saat önce</Text>
+
+                <View style={styles.activityItem}>
+                  <View style={[styles.activityIcon, { backgroundColor: '#2196F3' }]}>
+                    <Ionicons name="clipboard" size={16} color="#fff" />
+                  </View>
+                  <View style={styles.activityContent}>
+                    <Text style={styles.activityTitle}>Rehber yeni anket oluşturdu.</Text>
+                    <Text style={styles.activityTime}>4 saat önce</Text>
+                  </View>
                 </View>
-              </View>
-              
-              <View style={styles.activityItem}>
-                <View style={[styles.activityIcon, { backgroundColor: '#FF9800' }]}>
-                  <Ionicons name="trophy" size={16} color="#fff" />
-                </View>
-                <View style={styles.activityContent}>
-                  <Text style={styles.activityTitle}>Yüksek puan alındı</Text>
-                  <Text style={styles.activityTime}>6 saat önce</Text>
+
+                <View style={styles.activityItem}>
+                  <View style={[styles.activityIcon, { backgroundColor: '#FF9800' }]}>
+                    <Ionicons name="trophy" size={16} color="#fff" />
+                  </View>
+                  <View style={styles.activityContent}>
+                    <Text style={styles.activityTitle}>Adem problem çözmede birinciliğe yükseldi!</Text>
+                    <Text style={styles.activityTime}>6 saat önce</Text>
+                  </View>
                 </View>
               </View>
             </View>
           </View>
-        </View>
         </ScrollView>
       </SafeAreaView>
+
+      {/* Mood Selection Modal */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={moodModalVisible}
+        onRequestClose={() => setMoodModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Bugün Nasıl Hissediyorsun?</Text>
+            <Text style={styles.modalSubtitle}>Ruh halini seç</Text>
+
+            <View style={styles.moodGrid}>
+              {moodOptions.map((mood) => (
+                <TouchableOpacity
+                  key={mood.id}
+                  style={[
+                    styles.moodOption,
+                    selectedMood?.id === mood.id && styles.moodOptionSelected
+                  ]}
+                  onPress={() => handleMoodSelect(mood)}
+                >
+                  <Text style={styles.moodEmoji}>{mood.emoji}</Text>
+                  <Text style={styles.moodLabel}>{mood.label}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            <TouchableOpacity
+              style={styles.modalCloseButton}
+              onPress={() => setMoodModalVisible(false)}
+            >
+              <Text style={styles.modalCloseButtonText}>Kapat</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -215,7 +299,7 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: '#f5f7fa',
-    
+
   },
   header: {
     paddingHorizontal: 20,
@@ -251,7 +335,7 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    marginTop: -24, // MotivationMessage'ı header'a yaklaştırmak için
+    marginTop: -47, // MotivationMessage'ı header'a yaklaştırmak için
   },
   scrollContent: {
     paddingBottom: 20,
@@ -260,6 +344,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 10,
     paddingBottom: 10,
+    marginBottom: -12,
   },
   dashboard: {
     padding: 20,
@@ -328,6 +413,79 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#666',
     marginTop: 2,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    padding: 24,
+    width: width * 0.85,
+    maxWidth: 400,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  modalTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: '#333',
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  modalSubtitle: {
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'center',
+    marginBottom: 24,
+  },
+  moodGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    marginBottom: 24,
+  },
+  moodOption: {
+    width: '30%',
+    aspectRatio: 1,
+    backgroundColor: '#f5f7fa',
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 12,
+    borderWidth: 2,
+    borderColor: 'transparent',
+  },
+  moodOptionSelected: {
+    borderColor: '#49b66f',
+    backgroundColor: '#e8f7f1',
+  },
+  moodEmoji: {
+    fontSize: 40,
+    marginBottom: 8,
+  },
+  moodLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#333',
+    textAlign: 'center',
+  },
+  modalCloseButton: {
+    backgroundColor: '#49b66f',
+    borderRadius: 12,
+    paddingVertical: 14,
+    alignItems: 'center',
+  },
+  modalCloseButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
 

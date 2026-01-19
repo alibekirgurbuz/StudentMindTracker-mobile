@@ -25,7 +25,7 @@ const CreateSurveyScreen = ({ navigation: propNavigation = null }) => {
   const dispatch = useDispatch();
   const { currentUser } = useSelector(state => state.user || {});
   const { isLoading } = useSelector(state => state.rehber || {});
-  
+
   const [surveyTitle, setSurveyTitle] = useState('');
   const [surveyDescription, setSurveyDescription] = useState('');
   const [questions, setQuestions] = useState([
@@ -44,20 +44,20 @@ const CreateSurveyScreen = ({ navigation: propNavigation = null }) => {
   };
 
   const updateQuestion = (id, field, value) => {
-    setQuestions(questions.map(q => 
+    setQuestions(questions.map(q =>
       q.id === id ? { ...q, [field]: value } : q
     ));
   };
 
   const updateOption = (questionId, optionIndex, value) => {
-    setQuestions(questions.map(q => 
-      q.id === questionId 
-        ? { 
-            ...q, 
-            options: q.options.map((opt, idx) => 
-              idx === optionIndex ? value : opt
-            )
-          } 
+    setQuestions(questions.map(q =>
+      q.id === questionId
+        ? {
+          ...q,
+          options: q.options.map((opt, idx) =>
+            idx === optionIndex ? value : opt
+          )
+        }
         : q
     ));
   };
@@ -69,20 +69,20 @@ const CreateSurveyScreen = ({ navigation: propNavigation = null }) => {
   };
 
   const addOption = (questionId) => {
-    setQuestions(questions.map(q => 
-      q.id === questionId 
+    setQuestions(questions.map(q =>
+      q.id === questionId
         ? { ...q, options: [...q.options, ''] }
         : q
     ));
   };
 
   const removeOption = (questionId, optionIndex) => {
-    setQuestions(questions.map(q => 
-      q.id === questionId 
-        ? { 
-            ...q, 
-            options: q.options.filter((_, idx) => idx !== optionIndex)
-          }
+    setQuestions(questions.map(q =>
+      q.id === questionId
+        ? {
+          ...q,
+          options: q.options.filter((_, idx) => idx !== optionIndex)
+        }
         : q
     ));
   };
@@ -131,10 +131,10 @@ const CreateSurveyScreen = ({ navigation: propNavigation = null }) => {
         rehberId: currentUser?.id,
         anketData: surveyData
       }));
-      
+
       if (result.type.endsWith('/fulfilled')) {
         Alert.alert(
-          'Başarılı', 
+          'Başarılı',
           'Anket başarıyla oluşturuldu ve öğrencilere gönderildi!',
           [
             {
@@ -155,17 +155,17 @@ const CreateSurveyScreen = ({ navigation: propNavigation = null }) => {
         response: error.response,
         data: error.data
       });
-      
+
       let errorMessage = 'Anket oluşturulurken bir hata oluştu';
-      
+
       if (error.message) {
         errorMessage += `: ${error.message}`;
       }
-      
+
       if (error.response?.data?.message) {
         errorMessage += `\n\nDetay: ${error.response.data.message}`;
       }
-      
+
       Alert.alert('Hata', errorMessage);
     } finally {
       setIsPublishing(false);
@@ -176,9 +176,9 @@ const CreateSurveyScreen = ({ navigation: propNavigation = null }) => {
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="transparent" translucent={true} />
-      
+
       <LinearGradient
-        colors={['#667eea', '#764ba2']}
+        colors={['#49b66f', '#1db4e2']}
         style={styles.header}
       >
         <View style={styles.headerContent}>
@@ -192,7 +192,7 @@ const CreateSurveyScreen = ({ navigation: propNavigation = null }) => {
       </LinearGradient>
 
       <SafeAreaView style={styles.safeArea}>
-        <KeyboardAvoidingView 
+        <KeyboardAvoidingView
           style={styles.keyboardContainer}
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         >
@@ -208,7 +208,7 @@ const CreateSurveyScreen = ({ navigation: propNavigation = null }) => {
                   placeholderTextColor="#999"
                 />
               </View>
-              
+
               <View style={styles.inputGroup}>
                 <Text style={styles.inputLabel}>Açıklama (İsteğe bağlı)</Text>
                 <TextInput
@@ -233,9 +233,9 @@ const CreateSurveyScreen = ({ navigation: propNavigation = null }) => {
               </View>
 
               {questions.map((question, index) => (
-                <QuestionCard 
-                  key={question.id} 
-                  question={question} 
+                <QuestionCard
+                  key={question.id}
+                  question={question}
                   index={index}
                   onUpdateQuestion={updateQuestion}
                   onUpdateOption={updateOption}
@@ -249,8 +249,8 @@ const CreateSurveyScreen = ({ navigation: propNavigation = null }) => {
 
             {/* Publish Button - Scroll Content'in en altında */}
             <View style={styles.publishSection}>
-              <TouchableOpacity 
-                onPress={publishSurvey} 
+              <TouchableOpacity
+                onPress={publishSurvey}
                 style={styles.publishButton}
                 disabled={isPublishing}
               >
@@ -304,7 +304,7 @@ const styles = StyleSheet.create({
   },
   keyboardContainer: {
     flex: 1,
-    marginTop: -33,
+    marginTop: -47,
   },
   scrollView: {
     flex: 1,
@@ -332,11 +332,11 @@ const styles = StyleSheet.create({
   addButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#667eea',
+    backgroundColor: '#49b66f',
     paddingHorizontal: 20,
     paddingVertical: 12,
     borderRadius: 25,
-    shadowColor: '#667eea',
+    shadowColor: '#49b66f',
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.3,
     shadowRadius: 6,

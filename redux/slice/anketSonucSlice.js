@@ -1,13 +1,13 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 
-const API_BASE_URL = 'http://10.101.160.168:5000/api';
+const API_BASE_URL = 'https://studentmindtracker-server-1.onrender.com';
 
 // Async thunks
 export const saveAnketSonuc = createAsyncThunk(
   'anketSonuc/saveAnketSonuc',
   async ({ ogrenciId, anketId, sonuc }, { rejectWithValue }) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/survey/save-result`, {
+      const response = await fetch(`${API_BASE_URL}/api/survey/save-result`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -36,7 +36,7 @@ export const getAnketSonuclari = createAsyncThunk(
   'anketSonuc/getAnketSonuclari',
   async (anketId, { rejectWithValue }) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/surveys/${anketId}/results`, {
+      const response = await fetch(`${API_BASE_URL}/api/surveys/${anketId}/results`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -61,7 +61,7 @@ export const getOgrenciAnketSonuclari = createAsyncThunk(
   'anketSonuc/getOgrenciAnketSonuclari',
   async (ogrenciId, { rejectWithValue }) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/ogrenci/${ogrenciId}/anket-sonuclari`, {
+      const response = await fetch(`${API_BASE_URL}/api/ogrenci/${ogrenciId}/anket-sonuclari`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -85,7 +85,7 @@ export const getRehberAnketSonuclari = createAsyncThunk(
   'anketSonuc/getRehberAnketSonuclari',
   async (rehberId, { rejectWithValue }) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/rehber/${rehberId}/anket-sonuclari`, {
+      const response = await fetch(`${API_BASE_URL}/api/rehber/${rehberId}/anket-sonuclari`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -109,7 +109,7 @@ export const getAnketIstatistikleri = createAsyncThunk(
   'anketSonuc/getAnketIstatistikleri',
   async (anketId, { rejectWithValue }) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/survey/${anketId}/statistics`, {
+      const response = await fetch(`${API_BASE_URL}/api/survey/${anketId}/statistics`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -133,7 +133,7 @@ export const getSinifBazliIstatistikler = createAsyncThunk(
   'anketSonuc/getSinifBazliIstatistikler',
   async ({ anketId, sinif }, { rejectWithValue }) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/survey/${anketId}/class-stats/${sinif}`, {
+      const response = await fetch(`${API_BASE_URL}/api/survey/${anketId}/class-stats/${sinif}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -157,7 +157,7 @@ export const exportAnketSonuclari = createAsyncThunk(
   'anketSonuc/exportAnketSonuclari',
   async (anketId, { rejectWithValue }) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/survey/${anketId}/export`, {
+      const response = await fetch(`${API_BASE_URL}/api/survey/${anketId}/export`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -240,7 +240,7 @@ const anketSonucSlice = createSlice({
         state.isLoading = false;
         state.error = action.payload;
       })
-      
+
       // Get Anket Sonuclari
       .addCase(getAnketSonuclari.pending, (state) => {
         state.isLoading = true;
@@ -258,7 +258,7 @@ const anketSonucSlice = createSlice({
         state.isLoading = false;
         state.error = action.payload;
       })
-      
+
       // Get Ogrenci Anket Sonuclari
       .addCase(getOgrenciAnketSonuclari.pending, (state) => {
         state.isLoading = true;
@@ -273,7 +273,7 @@ const anketSonucSlice = createSlice({
         state.isLoading = false;
         state.error = action.payload;
       })
-      
+
       // Get Rehber Anket Sonuclari
       .addCase(getRehberAnketSonuclari.pending, (state) => {
         state.isLoading = true;
@@ -288,7 +288,7 @@ const anketSonucSlice = createSlice({
         state.isLoading = false;
         state.error = action.payload;
       })
-      
+
       // Get Anket Istatistikleri
       .addCase(getAnketIstatistikleri.pending, (state) => {
         state.isLoading = true;
@@ -303,7 +303,7 @@ const anketSonucSlice = createSlice({
         state.isLoading = false;
         state.error = action.payload;
       })
-      
+
       // Get Sinif Bazli Istatistikler
       .addCase(getSinifBazliIstatistikler.pending, (state) => {
         state.isLoading = true;
@@ -318,7 +318,7 @@ const anketSonucSlice = createSlice({
         state.isLoading = false;
         state.error = action.payload;
       })
-      
+
       // Export Anket Sonuclari
       .addCase(exportAnketSonuclari.pending, (state) => {
         state.isLoading = true;
@@ -336,10 +336,10 @@ const anketSonucSlice = createSlice({
   },
 });
 
-export const { 
-  clearError, 
-  clearAnketSonucData, 
-  updateAnketIstatistikleri, 
-  clearExportData 
+export const {
+  clearError,
+  clearAnketSonucData,
+  updateAnketIstatistikleri,
+  clearExportData
 } = anketSonucSlice.actions;
 export default anketSonucSlice.reducer;

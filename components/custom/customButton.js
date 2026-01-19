@@ -13,7 +13,7 @@ const CustomButton = ({
   iconColor = '#fff',
   buttonStyle,
   textStyle,
-  gradientColors = ['#667eea', '#764ba2'],
+  gradientColors = ['#49b66f', '#1db4e2'],
   disabledColors = ['#a5a5a5', '#8a8a8a'],
   activeOpacity = 0.8,
   ...props
@@ -38,9 +38,9 @@ const CustomButton = ({
         ) : (
           <>
             {iconName && (
-              <Ionicons 
-                name={iconName} 
-                size={iconSize} 
+              <Ionicons
+                name={iconName}
+                size={iconSize}
                 color={iconColor}
                 style={styles.buttonIcon}
               />
@@ -58,7 +58,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     marginTop: 10,
     marginBottom: 15,
-    shadowColor: '#667eea',
+    shadowColor: '#49b66f',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,

@@ -23,9 +23,9 @@ const ProfileScreen = ({ navigation }) => {
   const dispatch = useDispatch();
   const { token, userEmail, userId, userProfile: reduxUserProfile, currentUser } = useSelector(state => state.user || {});
   const userRole = currentUser?.role;
-  
+
   // Debug log'ları useEffect'lere taşındı
-  
+
   const [userProfile, setUserProfile] = useState(null);
   const userProfileData = userProfile || reduxUserProfile;
   const [rehberBilgisi, setRehberBilgisi] = useState(null);
@@ -41,7 +41,7 @@ const ProfileScreen = ({ navigation }) => {
     console.log('ProfileScreen - currentUser değişti:', currentUser);
     console.log('ProfileScreen - userRole:', userRole);
     console.log('ProfileScreen - currentUser.ogrenciDetay:', currentUser?.ogrenciDetay);
-    
+
     if (currentUser && currentUser.role === 'Öğrenci' && currentUser.ogrenciDetay && currentUser.ogrenciDetay.rehberID) {
       loadRehberBilgisi();
     }
@@ -68,11 +68,11 @@ const ProfileScreen = ({ navigation }) => {
   const loadUserProfile = async () => {
     try {
       setLoading(true);
-      
+
       if (token && userId) {
         // Mevcut kullanıcının profil bilgilerini getir
         const currentUser = await getUserById(token, userId);
-        
+
         if (currentUser) {
           setUserProfile(currentUser);
         }
@@ -115,7 +115,7 @@ const ProfileScreen = ({ navigation }) => {
     <TouchableOpacity style={styles.profileItem} onPress={onPress}>
       <View style={styles.profileItemLeft}>
         <View style={styles.profileItemIcon}>
-          <Ionicons name={icon} size={24} color="#667eea" />
+          <Ionicons name={icon} size={24} color="#49b66f" />
         </View>
         <View style={styles.profileItemText}>
           <Text style={styles.profileItemTitle}>{title}</Text>
@@ -145,13 +145,19 @@ const ProfileScreen = ({ navigation }) => {
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="transparent" translucent={true} />
-      
+
       <LinearGradient
-        colors={['#667eea', '#764ba2']}
+        colors={['#49b66f', '#1db4e2']}
         style={styles.header}
       >
         <View style={styles.headerContent}>
-          <View>
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            style={styles.backButton}
+          >
+            <Ionicons name="arrow-back" size={24} color="#fff" />
+          </TouchableOpacity>
+          <View style={styles.headerTitleContainer}>
             <Text style={styles.title}>Profil 👤</Text>
             <Text style={styles.subtitle}>Hesap bilgileriniz</Text>
           </View>
@@ -162,102 +168,90 @@ const ProfileScreen = ({ navigation }) => {
       </LinearGradient>
 
       <SafeAreaView style={styles.safeArea}>
-        <ScrollView 
+        <ScrollView
           style={styles.content}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={[styles.scrollContent, { paddingBottom: 100 }]} // Tab bar için ek padding
         >
-        <View style={styles.profileContainer}>
-          {/* Profil Bilgileri */}
-          <View style={styles.profileInfo}>
-            <View style={styles.avatarContainer}>
-              <View style={styles.avatar}>
-                <Ionicons name="person" size={40} color="#667eea" />
+          <View style={styles.profileContainer}>
+            {/* Profil Bilgileri */}
+            <View style={styles.profileInfo}>
+              <View style={styles.avatarContainer}>
+                <View style={styles.avatar}>
+                  <Ionicons name="person" size={40} color="#49b66f" />
+                </View>
               </View>
-            </View>
-            <View style={styles.roleBadge}>
-              <Text style={styles.roleText}>Rol: {userRole}</Text>
-            </View>
-            <Text style={styles.userEmail}>
-              {currentUser ? `${currentUser.ad} ${currentUser.soyad}` : userEmail}
-            </Text>
-            
-            {/* Öğrenci ise sorumlu rehber bilgisi */}
-            {userRole === 'Öğrenci' && (
-              <View style={styles.rehberInfo}>
-                <Text style={styles.rehberLabel}>
-                  {rehberBilgisi ? 
-                    `Sorumlu Rehber: ${rehberBilgisi.ad} ${rehberBilgisi.soyad}` : 
-                    'Rehber bilgisi yükleniyor...'
-                  }
-                </Text>
+              <View style={styles.roleBadge}>
+                <Text style={styles.roleText}>Rol: {userRole}</Text>
               </View>
-            )}
-            
-            {/* Öğrenci detay bilgileri */}
-            {userProfileData && userProfileData.role === 'Öğrenci' && userProfileData.ogrenciDetay && (
-              <View style={styles.studentDetails}>
-                {userProfileData.ogrenciDetay.yas && (
-                  <Text style={styles.detailText}>Yaş: {userProfileData.ogrenciDetay.yas}</Text>
-                )}
-                {userProfileData.ogrenciDetay.sinif && (
-                  <Text style={styles.detailText}>Sınıf: {userProfileData.ogrenciDetay.sinif}</Text>
-                )}
-              </View>
-            )}
-            
-            {/* Rehber detay bilgileri */}
-            {userProfileData && userProfileData.role === 'Rehber' && userProfileData.rehberDetay && userProfileData.rehberDetay.siniflar && (
-              <View style={styles.rehberDetails}>
-                <Text style={styles.detailText}>
-                  Sorumlu Sınıflar: {userProfileData.rehberDetay.siniflar.join(', ')}
-                </Text>
-              </View>
-            )}
-          </View>
+              <Text style={styles.userEmail}>
+                {currentUser ? `${currentUser.ad} ${currentUser.soyad}` : userEmail}
+              </Text>
 
-          {/* Profil Seçenekleri */}
-          <View style={styles.optionsContainer}>
-            <View style={styles.optionsList}>
-              <ProfileItem
-                icon="person-outline"
-                title="Kişisel Bilgiler"
-                subtitle="Ad, soyad ve iletişim bilgileri"
-                onPress={() => Alert.alert('Kişisel Bilgiler', 'Kişisel bilgiler sayfası açılacak')}
-              />
-              <ProfileItem
-                icon="lock-closed-outline"
-                title="Şifre Değiştir"
-                subtitle="Hesap güvenliğiniz için"
-                onPress={() => Alert.alert('Şifre Değiştir', 'Şifre değiştirme sayfası açılacak')}
-              />
-              <ProfileItem
-                icon="notifications-outline"
-                title="Bildirimler"
-                subtitle="Bildirim ayarlarınız"
-                onPress={() => Alert.alert('Bildirimler', 'Bildirim ayarları açılacak')}
-              />
-              <ProfileItem
-                icon="shield-checkmark-outline"
-                title="Gizlilik"
-                subtitle="Gizlilik ve güvenlik ayarları"
-                onPress={() => Alert.alert('Gizlilik', 'Gizlilik ayarları açılacak')}
-              />
-              <ProfileItem
-                icon="help-circle-outline"
-                title="Yardım & Destek"
-                subtitle="Sık sorulan sorular ve destek"
-                onPress={() => Alert.alert('Yardım', 'Yardım sayfası açılacak')}
-              />
-              <ProfileItem
-                icon="information-circle-outline"
-                title="Hakkında"
-                subtitle="Uygulama bilgileri"
-                onPress={() => Alert.alert('Hakkında', 'Uygulama hakkında bilgiler')}
-              />
+              {/* Rehber ise sorumlu sınıflar bilgisi - Adın altında */}
+              {userProfileData && userProfileData.role === 'Rehber' && userProfileData.rehberDetay && userProfileData.rehberDetay.siniflar && userProfileData.rehberDetay.siniflar.length > 0 && (
+                <View style={styles.rehberSiniflar}>
+                  <Text style={styles.rehberSiniflarLabel}>
+                    Sorumlu Sınıflar: {userProfileData.rehberDetay.siniflar.join(', ')}
+                  </Text>
+                </View>
+              )}
+
+              {/* Öğrenci ise sorumlu rehber bilgisi */}
+              {userRole === 'Öğrenci' && (
+                <View style={styles.rehberInfo}>
+                  <Text style={styles.rehberLabel}>
+                    {rehberBilgisi ?
+                      `Sorumlu Rehber: ${rehberBilgisi.ad} ${rehberBilgisi.soyad}` :
+                      'Rehber bilgisi yükleniyor...'
+                    }
+                  </Text>
+                </View>
+              )}
+
+              {/* Öğrenci detay bilgileri */}
+              {userProfileData && userProfileData.role === 'Öğrenci' && userProfileData.ogrenciDetay && (
+                <View style={styles.studentDetails}>
+                  {userProfileData.ogrenciDetay.yas && (
+                    <Text style={styles.detailText}>Yaş: {userProfileData.ogrenciDetay.yas}</Text>
+                  )}
+                  {userProfileData.ogrenciDetay.sinif && (
+                    <Text style={styles.detailText}>Sınıf: {userProfileData.ogrenciDetay.sinif}</Text>
+                  )}
+                </View>
+              )}
+            </View>
+
+            {/* Profil Seçenekleri */}
+            <View style={styles.optionsContainer}>
+              <View style={styles.optionsList}>
+                <ProfileItem
+                  icon="person-outline"
+                  title="Kişisel Bilgiler"
+                  subtitle="Ad, soyad ve iletişim bilgileri"
+                  onPress={() => navigation.navigate('PersonalInformation')}
+                />
+                <ProfileItem
+                  icon="lock-closed-outline"
+                  title="Şifre Değiştir"
+                  subtitle="Hesap güvenliğiniz için"
+                  onPress={() => navigation.navigate('PasswordChangingScreen')}
+                />
+                <ProfileItem
+                  icon="help-circle-outline"
+                  title="Yardım & Destek"
+                  subtitle="Sık sorulan sorular ve destek"
+                // onPress={() => Alert.alert('Yardım', 'Yardım sayfası açılacak')}
+                />
+                <ProfileItem
+                  icon="information-circle-outline"
+                  title="Hakkında"
+                  subtitle="Uygulama bilgileri"
+                // onPress={() => Alert.alert('Hakkında', 'Uygulama hakkında bilgiler')}
+                />
+              </View>
             </View>
           </View>
-        </View>
         </ScrollView>
       </SafeAreaView>
     </View>
@@ -275,13 +269,21 @@ const styles = StyleSheet.create({
   },
   header: {
     paddingHorizontal: 20,
-    paddingTop: 50, // StatusBar alanı için ek padding
+    paddingTop: 50,
     paddingBottom: 20,
   },
   headerContent: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+  },
+  backButton: {
+    padding: 8,
+    borderRadius: 8,
+    marginRight: 12,
+  },
+  headerTitleContainer: {
+    flex: 1,
   },
   title: {
     fontSize: 24,
@@ -301,7 +303,7 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    marginTop: -24,
+    marginTop: -44,
   },
   scrollContent: {
     flexGrow: 1,
@@ -334,7 +336,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 4,
-    borderColor: '#667eea',
+    borderColor: '#49b66f',
   },
   userEmail: {
     fontSize: 16,
@@ -342,14 +344,14 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   roleBadge: {
-    backgroundColor: '#667eea15',
+    backgroundColor: '#49b66f15',
     paddingHorizontal: 16,
     paddingVertical: 6,
     borderRadius: 20,
   },
   roleText: {
     fontSize: 14,
-    color: '#667eea',
+    color: '#49b66f',
     fontWeight: '600',
   },
   statCard: {
@@ -443,12 +445,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#e8f4fd',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#667eea20',
+    borderColor: '#49b66f20',
     alignItems: 'center',
   },
   rehberLabel: {
     fontSize: 12,
-    color: '#667eea',
+    color: '#49b66f',
     fontWeight: '600',
     textAlign: 'center',
   },
@@ -460,7 +462,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#f0f8ff',
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: '#667eea20',
+    borderColor: '#49b66f20',
   },
   rehberDetails: {
     marginTop: 12,
@@ -468,9 +470,24 @@ const styles = StyleSheet.create({
     backgroundColor: '#f8f9fa',
     borderRadius: 8,
   },
+  rehberSiniflar: {
+    marginTop: 8,
+    padding: 10,
+    backgroundColor: '#e8f4fd',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#49b66f20',
+    alignItems: 'center',
+  },
+  rehberSiniflarLabel: {
+    fontSize: 13,
+    color: '#49b66f',
+    fontWeight: '600',
+    textAlign: 'center',
+  },
   detailText: {
     fontSize: 14,
-    color: '#667eea',
+    color: '#49b66f',
     fontWeight: '600',
     marginLeft: 12,
   },

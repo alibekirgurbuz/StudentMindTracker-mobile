@@ -10,11 +10,11 @@ import {
   ActivityIndicator
 } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
-import { 
-  getOgrenciAnketler, 
-  getOgrenciAnket, 
+import {
+  getOgrenciAnketler,
+  getOgrenciAnket,
   submitAnketSonuc,
-  getOgrenciAnketSonuclari 
+  getOgrenciAnketSonuclari
 } from '../../redux/slice/ogrenciSlice';
 import { getAktifAnketler } from '../../redux/slice/anketSlice';
 import { getRehberAnketler } from '../../redux/slice/rehberSlice';
@@ -23,13 +23,13 @@ import QuestionCard from '../../components/ui/questionCard';
 
 const OgrenciSurveyView = ({ navigation }) => {
   const dispatch = useDispatch();
-  const { 
-    mevcutAnketler, 
-    seciliAnket, 
-    anketSonuclari, 
-    dashboardStats, 
-    isLoading, 
-    error 
+  const {
+    mevcutAnketler,
+    seciliAnket,
+    anketSonuclari,
+    dashboardStats,
+    isLoading,
+    error
   } = useSelector(state => state.ogrenci);
   const { anketler: rehberAnketleri, isLoading: rehberLoading } = useSelector(state => state.rehber || {});
   const { currentUser } = useSelector(state => state.user || {});
@@ -49,18 +49,18 @@ const OgrenciSurveyView = ({ navigation }) => {
     console.log('rehberId:', rehberId);
     console.log('rehberAnketleri:', rehberAnketleri);
     console.log('rehberAnketleri length:', rehberAnketleri?.length);
-    
+
     if (!rehberId || !rehberAnketleri) {
       console.log('Filtreleme başarısız: rehberId veya rehberAnketleri yok');
       return [];
     }
-    
+
     const filtered = rehberAnketleri.filter(anket => {
       console.log('Anket rehberId:', anket.rehberId, 'Öğrenci rehberId:', rehberId);
       console.log('ID karşılaştırması:', anket.rehberId === rehberId);
       return anket.rehberId?.toString() === rehberId?.toString();
     });
-    
+
     console.log('Filtrelenmiş anketler:', filtered);
     console.log('Filtrelenmiş anket sayısı:', filtered.length);
     return filtered;
@@ -76,17 +76,17 @@ const OgrenciSurveyView = ({ navigation }) => {
       console.log('currentUser.ogrenciDetay.rehberID:', currentUser?.ogrenciDetay?.rehberID);
       console.log('currentUser.ogrenciDetay.rehberId:', currentUser?.ogrenciDetay?.rehberId);
       console.log('Kullanılacak rehberId:', rehberId);
-      
+
       // Öğrenci anketlerini yükle
       await dispatch(getOgrenciAnketler());
-      
+
       // Öğrenci anket sonuçlarını yükle
       if (currentUser?.id) {
         console.log('Anket sonuçları yükleniyor, ogrenciId:', currentUser.id);
         await dispatch(getOgrenciAnketSonuclari(currentUser.id));
         console.log('Anket sonuçları yüklendi');
       }
-      
+
       // Rehber anketlerini de yükle
       if (rehberId) {
         console.log('Rehber anketleri yükleniyor, rehberId:', rehberId);
@@ -111,9 +111,9 @@ const OgrenciSurveyView = ({ navigation }) => {
     try {
       await dispatch(getOgrenciAnket(anket.id));
       setSelectedAnket(anket);
-      navigation.navigate('SurveyScreen', { 
+      navigation.navigate('SurveyScreen', {
         anketId: anket.id,
-        anketData: anket 
+        anketData: anket
       });
     } catch (error) {
       Alert.alert('Hata', 'Anket yüklenirken bir hata oluştu');
@@ -123,8 +123,8 @@ const OgrenciSurveyView = ({ navigation }) => {
   const handleAnketSonuclari = async () => {
     try {
       await dispatch(getOgrenciAnketSonuclari(currentUser.id));
-      navigation.navigate('AnketSonuclari', { 
-        ogrenciId: currentUser.id 
+      navigation.navigate('AnketSonuclari', {
+        ogrenciId: currentUser.id
       });
     } catch (error) {
       Alert.alert('Hata', 'Anket sonuçları yüklenirken bir hata oluştu');
@@ -150,7 +150,7 @@ const OgrenciSurveyView = ({ navigation }) => {
     console.log('Anket:', anket);
     console.log('Anket sorular:', anket.sorular);
     console.log('Soru sayısı:', anket.sorular?.length);
-    
+
     // QuestionsScreen'e navigate et
     navigation.navigate('QuestionsScreen', {
       anketData: anket
@@ -159,8 +159,34 @@ const OgrenciSurveyView = ({ navigation }) => {
 
 
   const renderAnketItem = ({ item }) => {
-    const tamamlandi = anketSonuclari?.some(sonuc => sonuc.anketId === item.id) || false;
-    
+    // Öğrenci ID'sini al ve string'e çevir
+    const ogrenciId = (currentUser?.id || currentUser?._id)?.toString();
+
+    console.log('=== ANKET TAMAMLANMA KONTROLÜ ===');
+    console.log('Anket ID:', item.id);
+    console.log('Öğrenci ID:', ogrenciId);
+    console.log('anketSonuclari:', anketSonuclari);
+    console.log('anketSonuclari length:', anketSonuclari?.length);
+
+    // Bu öğrencinin bu anketi çözüp çözmediğini kontrol et
+    const tamamlandi = anketSonuclari?.some(sonuc => {
+      const sonucAnketId = (sonuc.anketId || sonuc.anket_id)?.toString();
+      const sonucOgrenciId = (sonuc.ogrenciId || sonuc.ogrenci_id)?.toString();
+
+      console.log('Sonuç kontrolü:', {
+        sonucAnketId,
+        sonucOgrenciId,
+        itemId: item.id?.toString(),
+        ogrenciId,
+        anketMatch: sonucAnketId === item.id?.toString(),
+        ogrenciMatch: sonucOgrenciId === ogrenciId
+      });
+
+      return sonucAnketId === item.id?.toString() && sonucOgrenciId === ogrenciId;
+    }) || false;
+
+    console.log('Tamamlandı mı?', tamamlandi);
+
     return (
       <View style={styles.anketCard}>
         <View style={styles.anketHeader}>
@@ -179,9 +205,9 @@ const OgrenciSurveyView = ({ navigation }) => {
             </Text>
           </View>
         </View>
-        
+
         <Text style={styles.anketAciklama}>{item.aciklama}</Text>
-        
+
         <View style={styles.anketBilgileri}>
           <View style={styles.bilgiRow}>
             <Text style={styles.bilgiLabel}>Soru Sayısı:</Text>
@@ -189,8 +215,8 @@ const OgrenciSurveyView = ({ navigation }) => {
           </View>
           <View style={styles.bilgiRow}>
             <Text style={styles.bilgiLabel}>Durum:</Text>
-            <Text style={[styles.bilgiValue, { color: item.isActive ? '#4CAF50' : '#FF9800' }]}>
-              {item.isActive ? 'Aktif' : 'Pasif'}
+            <Text style={[styles.bilgiValue, { color: tamamlandi ? '#4CAF50' : item.isActive ? '#2196F3' : '#FF9800' }]}>
+              {tamamlandi ? 'Tamamlandı' : item.isActive ? 'Aktif' : 'Pasif'}
             </Text>
           </View>
         </View>
@@ -204,25 +230,22 @@ const OgrenciSurveyView = ({ navigation }) => {
               <Text style={styles.actionButtonText}>Anketi Başlat</Text>
             </TouchableOpacity>
           ) : tamamlandi ? (
-            <TouchableOpacity
+            <View
               style={[styles.actionButton, styles.tamamlandiButton]}
-              disabled={true}
             >
-              <Text style={styles.actionButtonText}>Tamamlandı</Text>
-            </TouchableOpacity>
+              <Text style={styles.actionButtonText}>Bu Anketi Çözdünüz</Text>
+            </View>
           ) : (
-            <TouchableOpacity
+            <View
               style={[styles.actionButton, styles.pasifButton]}
-              disabled={true}
             >
               <Text style={styles.actionButtonText}>Anket Pasif</Text>
-            </TouchableOpacity>
+            </View>
           )}
         </View>
       </View>
     );
   };
-
 
   const renderIstatistikler = () => (
     <View style={styles.istatistikContainer}>
@@ -258,16 +281,10 @@ const OgrenciSurveyView = ({ navigation }) => {
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>Anketlerim</Text>
-        <TouchableOpacity
-          style={styles.sonucButton}
-          onPress={handleAnketSonuclari}
-        >
-          <Text style={styles.sonucButtonText}>Sonuçlarım</Text>
-        </TouchableOpacity>
       </View>
-      
+
       {renderIstatistikler()}
-      
+
       <FlatList
         data={filteredAnketler}
         renderItem={renderAnketItem}
@@ -294,18 +311,20 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f5f5f5',
-    padding: 16,
+    padding: 10,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 30,
+    marginTop: -45,
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
     color: '#333',
+    marginBottom: 10,
   },
   sonucButton: {
     backgroundColor: '#2196F3',
@@ -332,7 +351,8 @@ const styles = StyleSheet.create({
   istatistikContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    marginBottom: 20,
+    marginBottom: 10,
+    marginTop: -25,
   },
   listContainer: {
     paddingBottom: 20,
@@ -510,8 +530,8 @@ const styles = StyleSheet.create({
     borderColor: '#e9ecef',
   },
   secenekButtonSelected: {
-    backgroundColor: '#667eea',
-    borderColor: '#667eea',
+    backgroundColor: '#49b66f',
+    borderColor: '#49b66f',
   },
   secenekText: {
     fontSize: 16,
@@ -538,7 +558,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#6c757d',
   },
   ileriButton: {
-    backgroundColor: '#667eea',
+    backgroundColor: '#49b66f',
   },
   tamamlaButton: {
     backgroundColor: '#28a745',

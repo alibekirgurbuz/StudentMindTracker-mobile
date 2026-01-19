@@ -13,7 +13,7 @@ const QuestionCard = ({ question, index, onUpdateQuestion, onUpdateOption, onRem
     <View style={styles.questionHeader}>
       <Text style={styles.questionNumber}>Soru {index + 1}</Text>
       {canRemove && (
-        <TouchableOpacity 
+        <TouchableOpacity
           onPress={() => onRemoveQuestion(question.id)}
           style={styles.removeButton}
         >
@@ -21,7 +21,7 @@ const QuestionCard = ({ question, index, onUpdateQuestion, onUpdateOption, onRem
         </TouchableOpacity>
       )}
     </View>
-    
+
     <TextInput
       style={styles.questionInput}
       placeholder="Sorunuzu yazın..."
@@ -33,15 +33,15 @@ const QuestionCard = ({ question, index, onUpdateQuestion, onUpdateOption, onRem
     <View style={styles.optionsSection}>
       <View style={styles.optionsHeader}>
         <Text style={styles.optionsTitle}>Seçenekler:</Text>
-        <TouchableOpacity 
+        <TouchableOpacity
           onPress={() => onAddOption(question.id)}
           style={styles.addOptionButton}
         >
-          <Ionicons name="add" size={16} color="#667eea" />
+          <Ionicons name="add" size={16} color="#49b66f" />
           <Text style={styles.addOptionText}>Seçenek Ekle</Text>
         </TouchableOpacity>
       </View>
-      
+
       {question.options.map((option, optionIndex) => (
         <View key={optionIndex} style={styles.optionContainer}>
           <TextInput
@@ -51,7 +51,7 @@ const QuestionCard = ({ question, index, onUpdateQuestion, onUpdateOption, onRem
             onChangeText={(text) => onUpdateOption(question.id, optionIndex, text)}
           />
           {question.options.length > 2 && (
-            <TouchableOpacity 
+            <TouchableOpacity
               onPress={() => onRemoveOption(question.id, optionIndex)}
               style={styles.removeOptionButton}
             >
@@ -118,12 +118,12 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#667eea',
+    borderColor: '#49b66f',
   },
   addOptionText: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#667eea',
+    color: '#49b66f',
     marginLeft: 4,
   },
   optionContainer: {

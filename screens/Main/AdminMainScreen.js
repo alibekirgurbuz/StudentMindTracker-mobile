@@ -33,14 +33,14 @@ const AdminMainScreen = ({ navigation }) => {
   React.useEffect(() => {
     const fetchStats = async () => {
       if (!token) return;
-      
+
       try {
         const [users, ogrenciler, rehberler] = await Promise.all([
           getAllUsers(token),
           getUsersByRole('Öğrenci'),
           getUsersByRole('Rehber')
         ]);
-        
+
         setStats({
           totalUsers: users.length,
           totalOgrenciler: ogrenciler.length,
@@ -50,7 +50,7 @@ const AdminMainScreen = ({ navigation }) => {
         console.error('Admin stats yüklenemedi:', error);
       }
     };
-    
+
     fetchStats();
   }, [token]);
 
@@ -109,9 +109,9 @@ const AdminMainScreen = ({ navigation }) => {
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="transparent" translucent={true} />
-      
+
       <LinearGradient
-        colors={['#667eea', '#764ba2']}
+        colors={['#49b66f', '#1db4e2']}
         style={styles.header}
       >
         <View style={styles.headerContent}>
@@ -130,113 +130,113 @@ const AdminMainScreen = ({ navigation }) => {
       </LinearGradient>
 
       <SafeAreaView style={styles.safeArea}>
-        <ScrollView 
+        <ScrollView
           style={styles.content}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={[styles.scrollContent, { paddingBottom: 100 }]} // Tab bar için ek padding
         >
-        <View style={styles.dashboard}>
-          {/* Admin İstatistik Kartları */}
-          <View style={styles.statsContainer}>
-            <View style={styles.statsGrid}>
-              <StatCard
-                title="Toplam Kullanıcı"
-                value={stats.totalUsers.toString()}
-                icon="people-outline"
-                color="#4CAF50"
-                onPress={() => Alert.alert('Kullanıcılar', 'Kullanıcı yönetimi açılacak')}
-              />
-              <StatCard
-                title="Aktif Rehber"
-                value={stats.totalRehberler.toString()}
-                icon="school-outline"
-                color="#2196F3"
-                onPress={() => Alert.alert('Rehberler', 'Rehber listesi açılacak')}
-              />
-              <StatCard
-                title="Toplam Öğrenci"
-                value={stats.totalOgrenciler.toString()}
-                icon="person-outline"
-                color="#FF9800"
-                onPress={() => Alert.alert('Öğrenciler', 'Öğrenci listesi açılacak')}
-              />
-              <StatCard
-                title="Sistem Durumu"
-                value="Aktif"
-                icon="checkmark-circle-outline"
-                color="#9C27B0"
-                onPress={() => Alert.alert('Sistem', 'Sistem durumu açılacak')}
-              />
+          <View style={styles.dashboard}>
+            {/* Admin İstatistik Kartları */}
+            <View style={styles.statsContainer}>
+              <View style={styles.statsGrid}>
+                <StatCard
+                  title="Toplam Kullanıcı"
+                  value={stats.totalUsers.toString()}
+                  icon="people-outline"
+                  color="#4CAF50"
+                  onPress={() => Alert.alert('Kullanıcılar', 'Kullanıcı yönetimi açılacak')}
+                />
+                <StatCard
+                  title="Aktif Rehber"
+                  value={stats.totalRehberler.toString()}
+                  icon="school-outline"
+                  color="#2196F3"
+                  onPress={() => Alert.alert('Rehberler', 'Rehber listesi açılacak')}
+                />
+                <StatCard
+                  title="Toplam Öğrenci"
+                  value={stats.totalOgrenciler.toString()}
+                  icon="person-outline"
+                  color="#FF9800"
+                  onPress={() => Alert.alert('Öğrenciler', 'Öğrenci listesi açılacak')}
+                />
+                <StatCard
+                  title="Sistem Durumu"
+                  value="Aktif"
+                  icon="checkmark-circle-outline"
+                  color="#9C27B0"
+                  onPress={() => Alert.alert('Sistem', 'Sistem durumu açılacak')}
+                />
+              </View>
             </View>
-          </View>
 
-          {/* Admin Hızlı Eylemler */}
-          <View style={styles.quickActionsContainer}>
-            <Text style={styles.sectionTitle}>Aktiviteler</Text>
-            <View style={styles.quickActionsGrid}>
-              <QuickAction
-                title="Kullanıcı Yönetimi"
-                icon="people-outline"
-                color="#4CAF50"
-                onPress={() => Alert.alert('Kullanıcı Yönetimi', 'Kullanıcı yönetim paneli açılacak')}
-              />
-              <QuickAction
-                title="Sistem Ayarları"
-                icon="settings-outline"
-                color="#2196F3"
-                onPress={() => Alert.alert('Sistem Ayarları', 'Sistem ayarları açılacak')}
-              />
-              <QuickAction
-                title="Raporlar"
-                icon="analytics-outline"
-                color="#FF9800"
-                onPress={() => Alert.alert('Raporlar', 'Detaylı raporlar açılacak')}
-              />
-              <QuickAction
-                title="Yedekleme"
-                icon="cloud-upload-outline"
-                color="#9C27B0"
-                onPress={() => Alert.alert('Yedekleme', 'Sistem yedekleme açılacak')}
-              />
+            {/* Admin Hızlı Eylemler */}
+            <View style={styles.quickActionsContainer}>
+              <Text style={styles.sectionTitle}>Aktiviteler</Text>
+              <View style={styles.quickActionsGrid}>
+                <QuickAction
+                  title="Rehber Ekle"
+                  icon="people-outline"
+                  color="#4CAF50"
+                  onPress={() => navigation.navigate('CreateRehber')}
+                />
+                <QuickAction
+                  title="Sistem Ayarları"
+                  icon="settings-outline"
+                  color="#2196F3"
+                  onPress={() => Alert.alert('Sistem Ayarları', 'Sistem ayarları açılacak')}
+                />
+                <QuickAction
+                  title="Raporlar"
+                  icon="analytics-outline"
+                  color="#FF9800"
+                  onPress={() => Alert.alert('Raporlar', 'Detaylı raporlar açılacak')}
+                />
+                <QuickAction
+                  title="Yedekleme"
+                  icon="cloud-upload-outline"
+                  color="#9C27B0"
+                  onPress={() => Alert.alert('Yedekleme', 'Sistem yedekleme açılacak')}
+                />
+              </View>
             </View>
-          </View>
 
-          {/* Son Admin Aktiviteler */}
-          <View style={styles.recentContainer}>
-            <Text style={styles.sectionTitle}>Son Admin Aktiviteler</Text>
-            <View style={styles.activityList}>
-              <View style={styles.activityItem}>
-                <View style={[styles.activityIcon, { backgroundColor: '#4CAF50' }]}>
-                  <Ionicons name="person-add" size={16} color="#fff" />
+            {/* Son Admin Aktiviteler */}
+            <View style={styles.recentContainer}>
+              <Text style={styles.sectionTitle}>Son Admin Aktiviteler</Text>
+              <View style={styles.activityList}>
+                <View style={styles.activityItem}>
+                  <View style={[styles.activityIcon, { backgroundColor: '#4CAF50' }]}>
+                    <Ionicons name="person-add" size={16} color="#fff" />
+                  </View>
+                  <View style={styles.activityContent}>
+                    <Text style={styles.activityTitle}>Yeni rehber eklendi</Text>
+                    <Text style={styles.activityTime}>1 saat önce</Text>
+                  </View>
                 </View>
-                <View style={styles.activityContent}>
-                  <Text style={styles.activityTitle}>Yeni rehber eklendi</Text>
-                  <Text style={styles.activityTime}>1 saat önce</Text>
+
+                <View style={styles.activityItem}>
+                  <View style={[styles.activityIcon, { backgroundColor: '#2196F3' }]}>
+                    <Ionicons name="settings" size={16} color="#fff" />
+                  </View>
+                  <View style={styles.activityContent}>
+                    <Text style={styles.activityTitle}>Sistem ayarları güncellendi</Text>
+                    <Text style={styles.activityTime}>3 saat önce</Text>
+                  </View>
                 </View>
-              </View>
-              
-              <View style={styles.activityItem}>
-                <View style={[styles.activityIcon, { backgroundColor: '#2196F3' }]}>
-                  <Ionicons name="settings" size={16} color="#fff" />
-                </View>
-                <View style={styles.activityContent}>
-                  <Text style={styles.activityTitle}>Sistem ayarları güncellendi</Text>
-                  <Text style={styles.activityTime}>3 saat önce</Text>
-                </View>
-              </View>
-              
-              <View style={styles.activityItem}>
-                <View style={[styles.activityIcon, { backgroundColor: '#FF9800' }]}>
-                  <Ionicons name="analytics" size={16} color="#fff" />
-                </View>
-                <View style={styles.activityContent}>
-                  <Text style={styles.activityTitle}>Aylık rapor oluşturuldu</Text>
-                  <Text style={styles.activityTime}>1 gün önce</Text>
+
+                <View style={styles.activityItem}>
+                  <View style={[styles.activityIcon, { backgroundColor: '#FF9800' }]}>
+                    <Ionicons name="analytics" size={16} color="#fff" />
+                  </View>
+                  <View style={styles.activityContent}>
+                    <Text style={styles.activityTitle}>Aylık rapor oluşturuldu</Text>
+                    <Text style={styles.activityTime}>1 gün önce</Text>
+                  </View>
                 </View>
               </View>
             </View>
           </View>
-        </View>
         </ScrollView>
       </SafeAreaView>
     </View>

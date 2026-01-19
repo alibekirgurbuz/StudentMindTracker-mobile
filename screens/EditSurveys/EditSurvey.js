@@ -16,17 +16,22 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useDispatch, useSelector } from 'react-redux';
-import { updateRehberAnket } from '../../redux/slice/rehberSlice';
+import {
+  updateRehberAnket,
+  getRehberAnketler,
+  getRehberDashboardData,
+} from '../../redux/slice/rehberSlice';
 
 const { width, height } = Dimensions.get('window');
 
 const EditSurvey = ({ navigation, route }) => {
   const dispatch = useDispatch();
   const { anketData } = route.params;
-  
+  const { currentUser } = useSelector(state => state.user || {});
+
   // Debug: Anket verilerini kontrol et
   console.log('EditSurvey - anketData:', anketData);
-  
+
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     baslik: anketData?.baslik || anketData?.title || '',
@@ -36,7 +41,7 @@ const EditSurvey = ({ navigation, route }) => {
     targetClasses: anketData?.targetClasses || [],
     sorular: anketData?.sorular || anketData?.questions || []
   });
-  
+
   // Debug: Form verilerini kontrol et
   console.log('EditSurvey - formData:', formData);
 
@@ -47,14 +52,14 @@ const EditSurvey = ({ navigation, route }) => {
         Alert.alert('Hata', 'Anket başlığı boş olamaz');
         return;
       }
-      
+
       if (!formData.aciklama.trim()) {
         Alert.alert('Hata', 'Anket açıklaması boş olamaz');
         return;
       }
-      
+
       setIsLoading(true);
-      
+
       const updateData = {
         anketId: anketData.id,
         anketData: {
@@ -63,13 +68,30 @@ const EditSurvey = ({ navigation, route }) => {
           isActive: formData.isActive,
           expiryDate: formData.expiryDate.trim(),
           targetClasses: formData.targetClasses,
-          sorular: formData.sorular
-        }
+          sorular: formData.sorular,
+        },
       };
 
-      await dispatch(updateRehberAnket(updateData));
-      
-      // Alert kaldırıldı - sessiz kaydetme
+      const resultAction = await dispatch(updateRehberAnket(updateData));
+
+      // Hata kontrolü
+      if (resultAction.type.endsWith('/rejected')) {
+        console.error('Anket güncelleme reddedildi:', resultAction);
+        Alert.alert('Hata', resultAction.payload || 'Anket güncellenemedi');
+        return;
+      }
+
+      // Güncel anket listesini ve dashboard istatistiklerini yeniden çek
+      if (currentUser?.id) {
+        try {
+          await dispatch(getRehberAnketler(currentUser.id));
+          await dispatch(getRehberDashboardData(currentUser.id));
+        } catch (refreshError) {
+          console.error('Anketler yenilenirken hata:', refreshError);
+        }
+      }
+
+      // Başarılı ise önceki ekrana dön
       navigation.goBack();
     } catch (error) {
       console.error('Anket güncelleme hatası:', error);
@@ -93,9 +115,9 @@ const EditSurvey = ({ navigation, route }) => {
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="transparent" translucent={true} />
-      
+
       <LinearGradient
-        colors={['#667eea', '#764ba2']}
+        colors={['#49b66f', '#1db4e2']}
         style={styles.header}
       >
         <SafeAreaView>
@@ -116,7 +138,7 @@ const EditSurvey = ({ navigation, route }) => {
           </View>
         </SafeAreaView>
       </LinearGradient>
-      
+
       <SafeAreaView style={styles.safeArea}>
         <ScrollView
           style={styles.scrollView}
@@ -125,34 +147,34 @@ const EditSurvey = ({ navigation, route }) => {
           <View style={styles.contentContainer}>
             <View style={styles.infoCard}>
               <View style={styles.infoHeader}>
-                <Ionicons name="create-outline" size={20} color="#667eea" />
+                <Ionicons name="create-outline" size={20} color="#49b66f" />
                 <Text style={styles.infoTitle}>Anket Bilgilerini Düzenle</Text>
               </View>
-              
+
               <View style={styles.inputItem}>
                 <Text style={styles.inputLabel}>Anket Başlığı:</Text>
                 <TextInput
                   style={styles.textInput}
                   value={formData.baslik}
-                  onChangeText={(text) => setFormData({...formData, baslik: text})}
+                  onChangeText={(text) => setFormData({ ...formData, baslik: text })}
                   placeholder="Anket başlığını girin"
                   placeholderTextColor="#999"
                 />
               </View>
-              
+
               <View style={styles.inputItem}>
                 <Text style={styles.inputLabel}>Açıklama:</Text>
                 <TextInput
                   style={[styles.textInput, styles.multilineInput]}
                   value={formData.aciklama}
-                  onChangeText={(text) => setFormData({...formData, aciklama: text})}
+                  onChangeText={(text) => setFormData({ ...formData, aciklama: text })}
                   placeholder="Anket açıklamasını girin"
                   placeholderTextColor="#999"
                   multiline
                   numberOfLines={3}
                 />
               </View>
-              
+
               <View style={styles.inputItem}>
                 <Text style={styles.inputLabel}>Anket Durumu:</Text>
                 <View style={styles.switchContainer}>
@@ -161,35 +183,35 @@ const EditSurvey = ({ navigation, route }) => {
                   </Text>
                   <Switch
                     value={formData.isActive}
-                    onValueChange={(value) => setFormData({...formData, isActive: value})}
-                    trackColor={{ false: '#e9ecef', true: '#667eea' }}
+                    onValueChange={(value) => setFormData({ ...formData, isActive: value })}
+                    trackColor={{ false: '#e9ecef', true: '#49b66f' }}
                     thumbColor={formData.isActive ? '#fff' : '#f4f3f4'}
                   />
                 </View>
               </View>
-              
+
               <View style={styles.inputItem}>
                 <Text style={styles.inputLabel}>Bitiş Tarihi:</Text>
                 <TextInput
                   style={styles.textInput}
                   value={formData.expiryDate}
-                  onChangeText={(text) => setFormData({...formData, expiryDate: text})}
+                  onChangeText={(text) => setFormData({ ...formData, expiryDate: text })}
                   placeholder="YYYY-MM-DD formatında girin"
                   placeholderTextColor="#999"
                 />
               </View>
-              
+
               <View style={styles.inputItem}>
                 <Text style={styles.inputLabel}>Hedef Sınıflar:</Text>
                 <TextInput
                   style={styles.textInput}
                   value={formData.targetClasses.join(', ')}
-                  onChangeText={(text) => setFormData({...formData, targetClasses: text.split(', ').filter(c => c.trim())})}
+                  onChangeText={(text) => setFormData({ ...formData, targetClasses: text.split(', ').filter(c => c.trim()) })}
                   placeholder="Sınıfları virgülle ayırarak girin (örn: 6-A, 7-B)"
                   placeholderTextColor="#999"
                 />
               </View>
-              
+
               <View style={styles.infoItem}>
                 <Text style={styles.infoLabel}>Soru Sayısı:</Text>
                 <Text style={styles.infoValue}>{formData.sorular.length} Soru</Text>
@@ -211,7 +233,7 @@ const EditSurvey = ({ navigation, route }) => {
                   {isLoading ? 'Kaydediliyor...' : 'Değişiklikleri Kaydet'}
                 </Text>
               </TouchableOpacity>
-              
+
               <TouchableOpacity
                 style={[styles.actionButton, styles.cancelButton]}
                 onPress={handleCancel}
@@ -278,9 +300,11 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flex: 1,
+    marginTop: -47,
   },
   contentContainer: {
     padding: 20,
+
   },
   infoCard: {
     backgroundColor: '#fff',
@@ -374,7 +398,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   saveButton: {
-    backgroundColor: '#667eea',
+    backgroundColor: '#49b66f',
   },
   cancelButton: {
     backgroundColor: '#f8f9fa',

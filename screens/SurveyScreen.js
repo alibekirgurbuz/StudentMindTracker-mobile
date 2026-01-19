@@ -18,7 +18,7 @@ import AdminSurveyView from './SurveysRole/AdminSurveyView';
 
 const SurveyScreen = ({ navigation }) => {
   const { currentUser } = useSelector(state => state.user || {});
-const userRole = currentUser?.role;
+  const userRole = currentUser?.role;
 
   // Role-based component rendering
   const renderSurveyComponent = () => {
@@ -37,21 +37,21 @@ const userRole = currentUser?.role;
   const getHeaderTitle = () => {
     switch (userRole) {
       case 'Admin':
-        return 'Admin Anketi';
+        return 'Anketler';
       case 'Rehber':
-        return 'Rehber Anketi';
+        return 'Anketler';
       case 'Öğrenci':
       default:
-        return 'Öğrenci Anketi';
+        return 'Anketler';
     }
   };
 
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="transparent" translucent={true} />
-      
+
       <LinearGradient
-        colors={['#667eea', '#764ba2']}
+        colors={['#49b66f', '#1db4e2']}
         style={styles.header}
       >
         <View style={styles.headerContent}>
@@ -99,7 +99,7 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    
+
   },
   scrollContent: {
     flexGrow: 1,

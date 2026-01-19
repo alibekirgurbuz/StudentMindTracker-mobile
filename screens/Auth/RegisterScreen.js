@@ -1,14 +1,10 @@
 import React, { useState } from 'react';
-import { 
-  View, 
-  Text, 
-  TextInput, 
-  TouchableOpacity, 
-  StyleSheet, 
-  ActivityIndicator, 
-  Alert, 
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
   ScrollView,
-  Dimensions,
   KeyboardAvoidingView,
   Platform,
   StatusBar
@@ -16,18 +12,14 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useDispatch, useSelector } from 'react-redux';
-import { registerUser, clearError } from '../../redux/slice/userSlice';
-import { register } from '../../services/authService';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { registerUser } from '../../redux/slice/userSlice';
 import CustomTextInput from '../../components/custom/customTextInput';
 import CustomButton from '../../components/custom/customButton';
-
-const { width, height } = Dimensions.get('window');
 
 const RegisterScreen = ({ navigation }) => {
   const dispatch = useDispatch();
   const { isLoading, error } = useSelector(state => state.user || {});
-  
+
   // Local state for form
   const [registerForm, setRegisterForm] = useState({
     ad: '',
@@ -43,28 +35,104 @@ const RegisterScreen = ({ navigation }) => {
     passwordFocused: false,
     confirmPasswordFocused: false
   });
-  
+
+  const [errorMessage, setErrorMessage] = useState('');
+
+  // XSS koruması için blacklist karakterler
+  const XSS_BLACKLIST = /<|>|script|javascript:|onerror|onload|eval|alert|prompt|confirm|document\.|window\./gi;
+
+  // Input sanitizasyon fonksiyonu
+  const sanitizeInput = (input) => {
+    if (!input) return input;
+    // Tehlikeli karakterleri ve scriptleri temizle
+    return input
+      .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+      .replace(/<|>/g, '')
+      .replace(/javascript:/gi, '')
+      .replace(/onerror|onload|eval|alert|prompt|confirm/gi, '')
+      .trim();
+  };
+
+  // Şifre için sanitizasyon (sadece script tagları ve tehlikeli komutları engelle)
+  const sanitizePassword = (input) => {
+    if (!input) return input;
+    return input
+      .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+      .replace(/javascript:/gi, '')
+      .replace(/eval|alert|prompt|confirm/gi, '');
+  };
+
+  // XSS kontrolü
+  const containsXSS = (input) => {
+    return XSS_BLACKLIST.test(input);
+  };
+
+  // E-posta validasyonu
+  const validateEmail = (email) => {
+    // E-posta regex pattern
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  // İsim validasyonu (sadece harf, boşluk ve Türkçe karakterler)
+  const validateName = (name) => {
+    const nameRegex = /^[a-zA-ZğüşıöçĞÜŞİÖÇ\s]+$/;
+    return nameRegex.test(name);
+  };
 
   const handleRegister = async () => {
+    // Önce hata mesajını temizle
+    setErrorMessage('');
+
     // 1. Alanların boş olup olmadığını kontrol et
     if (!registerForm.ad || !registerForm.soyad || !registerForm.email || !registerForm.password || !registerForm.confirmPassword) {
-      Alert.alert('Hata', 'Lütfen tüm alanları doldurun.');
+      setErrorMessage('Lütfen tüm alanları doldurun.');
       return;
     }
 
-    // 2. Şifrelerin eşleşip eşleşmediğini kontrol et
+    // 2. XSS kontrolü - tüm alanlar için
+    if (containsXSS(registerForm.ad) || containsXSS(registerForm.soyad) ||
+      containsXSS(registerForm.email) || containsXSS(registerForm.password)) {
+      setErrorMessage('Geçersiz karakterler tespit edildi. Lütfen düzgün bilgiler girin.');
+      return;
+    }
+
+    // 3. İsim validasyonu
+    if (!validateName(registerForm.ad)) {
+      setErrorMessage('Ad sadece harf içermelidir.');
+      return;
+    }
+
+    if (!validateName(registerForm.soyad)) {
+      setErrorMessage('Soyad sadece harf içermelidir.');
+      return;
+    }
+
+    // 4. E-posta validasyonu
+    if (!validateEmail(registerForm.email)) {
+      setErrorMessage('Geçerli bir e-posta adresi girin (örn: ornek@email.com).');
+      return;
+    }
+
+    // 5. Şifre uzunluğu kontrolü
+    if (registerForm.password.length < 6) {
+      setErrorMessage('Şifre en az 6 karakter olmalıdır.');
+      return;
+    }
+
+    // 6. Şifrelerin eşleşip eşleşmediğini kontrol et
     if (registerForm.password !== registerForm.confirmPassword) {
-      Alert.alert('Hata', 'Şifreler eşleşmiyor.');
+      setErrorMessage('Şifreler eşleşmiyor.');
       return;
     }
 
     try {
-      // 3. Redux action ile register işlemini gerçekleştir
+      // 7. Redux action ile register işlemini gerçekleştir (son bir sanitizasyon)
       const result = await dispatch(registerUser({
-        ad: registerForm.ad,
-        soyad: registerForm.soyad,
-        email: registerForm.email,
-        password: registerForm.password,
+        ad: sanitizeInput(registerForm.ad),
+        soyad: sanitizeInput(registerForm.soyad),
+        email: sanitizeInput(registerForm.email).toLowerCase(),
+        password: sanitizePassword(registerForm.password),
         role: 'Öğrenci' // Varsayılan rol
       }));
 
@@ -73,30 +141,30 @@ const RegisterScreen = ({ navigation }) => {
         console.log('Register successful:', result.payload);
       } else {
         // Hata durumu
-        Alert.alert('Kayıt Başarısız', result.payload || 'Bilinmeyen hata');
+        setErrorMessage(result.payload || 'Bilinmeyen hata');
       }
 
     } catch (err) {
       // 6. Hata oluşursa kullanıcıyı bilgilendir
       console.error('Register error:', err);
-      Alert.alert('Kayıt Başarısız', err.message);
+      setErrorMessage(err.message || 'Kayıt sırasında bir hata oluştu');
     }
   };
 
   return (
-    <KeyboardAvoidingView 
-      style={styles.container} 
+    <KeyboardAvoidingView
+      style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <StatusBar barStyle="light-content" backgroundColor="#667eea" />
-      
+      <StatusBar barStyle="light-content" backgroundColor="#49b66f" />
+
       <LinearGradient
-        colors={['#667eea', '#764ba2', '#f093fb']}
+        colors={['#49b66f', '#3dbdc2', '#1db4e2']}
         style={styles.gradient}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
       >
-        <ScrollView 
+        <ScrollView
           contentContainerStyle={styles.scrollContainer}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
@@ -117,50 +185,94 @@ const RegisterScreen = ({ navigation }) => {
               <CustomTextInput
                 placeholder="Adınız"
                 value={registerForm.ad}
-                onChangeText={(text) => dispatch(setRegisterAd(text))}
+                onChangeText={(text) => {
+                  const sanitized = sanitizeInput(text);
+                  setRegisterForm({ ...registerForm, ad: sanitized });
+                  if (errorMessage) setErrorMessage('');
+                }}
                 autoCapitalize="words"
                 iconName="person-outline"
                 focused={registerForm.adFocused}
-                onFocus={() => dispatch(setRegisterAdFocused(true))}
-                onBlur={() => dispatch(setRegisterAdFocused(false))}
+                onFocus={() => setRegisterForm({
+                  ...registerForm,
+                  adFocused: true,
+                  soyadFocused: false,
+                  emailFocused: false,
+                  passwordFocused: false,
+                  confirmPasswordFocused: false
+                })}
+                onBlur={() => setRegisterForm({ ...registerForm, adFocused: false })}
               />
 
               {/* Soyad Girişi */}
               <CustomTextInput
                 placeholder="Soyadınız"
                 value={registerForm.soyad}
-                onChangeText={(text) => dispatch(setRegisterSoyad(text))}
+                onChangeText={(text) => {
+                  const sanitized = sanitizeInput(text);
+                  setRegisterForm({ ...registerForm, soyad: sanitized });
+                  if (errorMessage) setErrorMessage('');
+                }}
                 autoCapitalize="words"
                 iconName="person-outline"
                 focused={registerForm.soyadFocused}
-                onFocus={() => dispatch(setRegisterSoyadFocused(true))}
-                onBlur={() => dispatch(setRegisterSoyadFocused(false))}
+                onFocus={() => setRegisterForm({
+                  ...registerForm,
+                  adFocused: false,
+                  soyadFocused: true,
+                  emailFocused: false,
+                  passwordFocused: false,
+                  confirmPasswordFocused: false
+                })}
+                onBlur={() => setRegisterForm({ ...registerForm, soyadFocused: false })}
               />
 
               {/* E-posta Girişi */}
               <CustomTextInput
                 placeholder="E-posta adresiniz"
                 value={registerForm.email}
-                onChangeText={(text) => dispatch(setRegisterEmail(text))}
+                onChangeText={(text) => {
+                  const sanitized = sanitizeInput(text);
+                  setRegisterForm({ ...registerForm, email: sanitized });
+                  if (errorMessage) setErrorMessage('');
+                }}
                 keyboardType="email-address"
                 autoCapitalize="none"
                 iconName="mail-outline"
                 focused={registerForm.emailFocused}
-                onFocus={() => dispatch(setRegisterEmailFocused(true))}
-                onBlur={() => dispatch(setRegisterEmailFocused(false))}
+                onFocus={() => setRegisterForm({
+                  ...registerForm,
+                  adFocused: false,
+                  soyadFocused: false,
+                  emailFocused: true,
+                  passwordFocused: false,
+                  confirmPasswordFocused: false
+                })}
+                onBlur={() => setRegisterForm({ ...registerForm, emailFocused: false })}
               />
 
               {/* Şifre Girişi */}
               <CustomTextInput
                 placeholder="Şifreniz"
                 value={registerForm.password}
-                onChangeText={(text) => dispatch(setRegisterPassword(text))}
+                onChangeText={(text) => {
+                  const sanitized = sanitizePassword(text);
+                  setRegisterForm({ ...registerForm, password: sanitized });
+                  if (errorMessage) setErrorMessage('');
+                }}
                 secureTextEntry={!registerForm.showPassword}
                 iconName="lock-closed-outline"
                 focused={registerForm.passwordFocused}
-                onFocus={() => dispatch(setRegisterPasswordFocused(true))}
-                onBlur={() => dispatch(setRegisterPasswordFocused(false))}
-                onTogglePassword={() => dispatch(setRegisterShowPassword(!registerForm.showPassword))}
+                onFocus={() => setRegisterForm({
+                  ...registerForm,
+                  adFocused: false,
+                  soyadFocused: false,
+                  emailFocused: false,
+                  passwordFocused: true,
+                  confirmPasswordFocused: false
+                })}
+                onBlur={() => setRegisterForm({ ...registerForm, passwordFocused: false })}
+                onTogglePassword={() => setRegisterForm({ ...registerForm, showPassword: !registerForm.showPassword })}
                 showPassword={registerForm.showPassword}
               />
 
@@ -168,24 +280,35 @@ const RegisterScreen = ({ navigation }) => {
               <CustomTextInput
                 placeholder="Şifreyi tekrar girin"
                 value={registerForm.confirmPassword}
-                onChangeText={(text) => dispatch(setRegisterConfirmPassword(text))}
+                onChangeText={(text) => {
+                  const sanitized = sanitizePassword(text);
+                  setRegisterForm({ ...registerForm, confirmPassword: sanitized });
+                  if (errorMessage) setErrorMessage('');
+                }}
                 secureTextEntry={!registerForm.showConfirmPassword}
                 iconName="lock-closed-outline"
                 focused={registerForm.confirmPasswordFocused}
-                onFocus={() => dispatch(setRegisterConfirmPasswordFocused(true))}
-                onBlur={() => dispatch(setRegisterConfirmPasswordFocused(false))}
-                onTogglePassword={() => dispatch(setRegisterShowConfirmPassword(!registerForm.showConfirmPassword))}
+                onFocus={() => setRegisterForm({
+                  ...registerForm,
+                  adFocused: false,
+                  soyadFocused: false,
+                  emailFocused: false,
+                  passwordFocused: false,
+                  confirmPasswordFocused: true
+                })}
+                onBlur={() => setRegisterForm({ ...registerForm, confirmPasswordFocused: false })}
+                onTogglePassword={() => setRegisterForm({ ...registerForm, showConfirmPassword: !registerForm.showConfirmPassword })}
                 showPassword={registerForm.showConfirmPassword}
               />
 
               {/* Hata Mesajı */}
-              {error && (
+              {(errorMessage || error) && (
                 <View style={styles.errorContainer}>
                   <Ionicons name="alert-circle-outline" size={16} color="#ff4757" />
-                  <Text style={styles.errorText}>{error}</Text>
+                  <Text style={styles.errorText}>{errorMessage || error}</Text>
                 </View>
               )}
-              
+
               {/* Kayıt Butonu */}
               <CustomButton
                 title="Hesap Oluştur"
@@ -194,7 +317,7 @@ const RegisterScreen = ({ navigation }) => {
                 disabled={isLoading}
                 iconName="person-add-outline"
               />
-              
+
               {/* Giriş Sayfasına Yönlendirme */}
               <View style={styles.loginContainer}>
                 <Text style={styles.loginText}>Zaten hesabınız var mı? </Text>
@@ -298,7 +421,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   loginLink: {
-    color: '#667eea',
+    color: '#49b66f',
     fontSize: 14,
     fontWeight: '600',
   },

@@ -25,10 +25,10 @@ const CustomTextInput = ({
     <View style={[styles.inputContainer, containerStyle]}>
       <View style={[styles.inputWrapper, focused && styles.inputFocused, style]}>
         {iconName && (
-          <Ionicons 
-            name={iconName} 
-            size={20} 
-            color={focused ? "#667eea" : "#999"} 
+          <Ionicons
+            name={iconName}
+            size={20}
+            color={focused ? "#49b66f" : "#999"}
             style={styles.inputIcon}
           />
         )}
@@ -50,10 +50,10 @@ const CustomTextInput = ({
             onPress={onTogglePassword}
             style={styles.eyeIcon}
           >
-            <Ionicons 
-              name={showPassword ? "eye-off-outline" : "eye-outline"} 
-              size={20} 
-              color="#999" 
+            <Ionicons
+              name={showPassword ? "eye-off-outline" : "eye-outline"}
+              size={20}
+              color="#999"
             />
           </TouchableOpacity>
         )}
@@ -77,7 +77,7 @@ const styles = StyleSheet.create({
     height: 56,
   },
   inputFocused: {
-    borderColor: '#667eea',
+    borderColor: '#49b66f',
   },
   inputIcon: {
     marginRight: 12,

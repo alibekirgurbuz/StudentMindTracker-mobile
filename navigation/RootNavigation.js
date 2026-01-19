@@ -16,6 +16,20 @@ import RehberMainScreen from '../screens/Main/RehberMainScreen'; // Rehber
 import SurveyResults from '../screens/SurveyResults/surveyResults';
 import EditSurvey from '../screens/EditSurveys/EditSurvey';
 import QuestionsScreen from '../screens/QuestionsScreen/QuestionsScreen';
+import SurveyAnalysis from '../screens/SurveyAnalysis/SurveyAnalysis';
+
+// Admin Screens
+import CreateRehber from '../screens/AdminManage/CreateRehber';
+
+// Profile Screens
+import PersonalInformation from '../screens/ProfileScreenPages/PersonalInformation';
+import PasswordChangingScreen from '../screens/ProfileScreenPages/PasswordChangingScreen';
+
+// Game Screens
+import MemoryCard from '../screens/Games/MemoryCard/MemoryCard';
+import ProblemSolving from '../screens/Games/ProblemSolving/ProblemSolving';
+import EnglishWords from '../screens/Games/EnglishWords/EnglishWords';
+import DecisionGame from '../screens/Games/DecisionGame/DecisionGame';
 
 // Tab Navigators
 import TabNavigator from './TabNavigator';
@@ -62,6 +76,38 @@ const RootNavigation = () => {
             <Stack.Screen 
               name="QuestionsScreen" 
               component={QuestionsScreen} 
+            />
+            <Stack.Screen 
+              name="SurveyAnalysis" 
+              component={SurveyAnalysis} 
+            />
+            <Stack.Screen 
+              name="CreateRehber" 
+              component={CreateRehber} 
+            />
+            <Stack.Screen 
+              name="PersonalInformation" 
+              component={PersonalInformation} 
+            />
+            <Stack.Screen 
+              name="PasswordChangingScreen" 
+              component={PasswordChangingScreen} 
+            />
+            <Stack.Screen 
+              name="MemoryCard" 
+              component={MemoryCard} 
+            />
+            <Stack.Screen 
+              name="ProblemSolving" 
+              component={ProblemSolving} 
+            />
+            <Stack.Screen 
+              name="EnglishWords" 
+              component={EnglishWords} 
+            />
+            <Stack.Screen 
+              name="DecisionGame" 
+              component={DecisionGame} 
             />
           </>
         ) : (

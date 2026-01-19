@@ -3,7 +3,7 @@ import {
   View,
   Text,
   StyleSheet,
-  FlatList,
+  ScrollView,
   TouchableOpacity,
   Alert,
   RefreshControl,
@@ -15,10 +15,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useDispatch, useSelector } from 'react-redux';
-import { 
-  getRehberAnketler, 
-  createRehberAnket, 
-  updateRehberAnket, 
+import {
+  getRehberAnketler,
+  createRehberAnket,
+  updateRehberAnket,
   deleteRehberAnket,
   getRehberDashboardData
 } from '../../redux/slice/rehberSlice';
@@ -30,15 +30,15 @@ const { width, height } = Dimensions.get('window');
 
 const RehberSurveyView = ({ navigation }) => {
   const dispatch = useDispatch();
-  const { 
-    rehberInfo, 
-    anketler, 
-    dashboardStats, 
-    isLoading, 
-    error 
+  const {
+    rehberInfo,
+    anketler,
+    dashboardStats,
+    isLoading,
+    error
   } = useSelector(state => state.rehber);
   const { currentUser } = useSelector(state => state.user || {});
-  
+
   // Debug: Redux state'ini kontrol et
   console.log('RehberSurveyView - dashboardStats:', dashboardStats);
   console.log('RehberSurveyView - anketler:', anketler);
@@ -79,13 +79,13 @@ const RehberSurveyView = ({ navigation }) => {
   // Her anket için katılımcı sayısını hesapla
   const loadAnketStats = async () => {
     if (!anketler || anketler.length === 0) return;
-    
+
     const stats = {};
     for (const anket of anketler) {
       try {
-        const response = await fetch(`http://10.101.160.168:5000/api/surveys/${anket.id}/results`);
+        const response = await fetch(`https://studentmindtracker-server-1.onrender.com/api/surveys/${anket.id}/results`);
         const data = await response.json();
-        
+
         if (data.success && data.data) {
           stats[anket.id] = {
             katilimciSayisi: data.data.results?.length || 0,
@@ -118,8 +118,8 @@ const RehberSurveyView = ({ navigation }) => {
   };
 
   const handleAnketDuzenle = (anket) => {
-    navigation.navigate('EditSurvey', { 
-      anketData: anket 
+    navigation.navigate('EditSurvey', {
+      anketData: anket
     });
   };
 
@@ -142,19 +142,19 @@ const RehberSurveyView = ({ navigation }) => {
     try {
       console.log('RehberSurveyView - Anket ID:', anketId);
       console.log('RehberSurveyView - Navigation objesi:', navigation);
-      
+
       // Navigation kontrolü
       if (!navigation || typeof navigation.navigate !== 'function') {
         throw new Error('Navigation objesi bulunamadı veya navigate fonksiyonu yok');
       }
-      
+
       const result = await dispatch(getAnketSonuclari(anketId));
       console.log('RehberSurveyView - Redux action sonucu:', result);
-      
+
       if (result.type.endsWith('/rejected')) {
         throw new Error(result.payload || 'Redux action başarısız');
       }
-      
+
       // Navigation'ı try-catch ile sar
       try {
         console.log('RehberSurveyView - SurveyResults sayfasına yönlendiriliyor...');
@@ -173,19 +173,19 @@ const RehberSurveyView = ({ navigation }) => {
   const handleAnketDurumDegistir = async (anketId, isActive) => {
     try {
       // Anket durumunu güncelle
-      await dispatch(updateRehberAnket({ 
-        anketId, 
-        anketData: { isActive: !isActive } 
+      await dispatch(updateRehberAnket({
+        anketId,
+        anketData: { isActive: !isActive }
       }));
-      
+
       // Anketler listesini yenile
       await dispatch(getRehberAnketler(currentUser.id));
-      
+
       // Dashboard istatistiklerini yenile
       if (currentUser?.id) {
         await dispatch(getRehberDashboardData(currentUser.id));
       }
-      
+
       // Alert mesajları kaldırıldı - sessiz işlem
     } catch (error) {
       console.error('Anket durumu değiştirilirken hata:', error);
@@ -193,96 +193,99 @@ const RehberSurveyView = ({ navigation }) => {
     }
   };
 
-  const renderAnketItem = ({ item }) => (
-    <View style={styles.anketCard}>
-      <LinearGradient
-        colors={['#fff', '#f8f9fa']}
-        style={styles.anketGradient}
-      >
-        <View style={styles.anketHeader}>
-          <View style={styles.anketTitleContainer}>
-            <Text style={styles.anketBaslik}>{item.baslik}</Text>
-            <View style={styles.anketMeta}>
-              <Ionicons name="calendar-outline" size={14} color="#666" />
-              <Text style={styles.metaText}>
-                {new Date(item.createdAt).toLocaleDateString('tr-TR')}
+  const renderAnketItem = ({ item }) => {
+    if (!item) return null;
+    return (
+      <View style={styles.anketCard}>
+        <LinearGradient
+          colors={['#fff', '#f8f9fa']}
+          style={styles.anketGradient}
+        >
+          <View style={styles.anketHeader}>
+            <View style={styles.anketTitleContainer}>
+              <Text style={styles.anketBaslik}>{item.baslik}</Text>
+              <View style={styles.anketMeta}>
+                <Ionicons name="calendar-outline" size={14} color="#666" />
+                <Text style={styles.metaText}>
+                  {new Date(item.createdAt).toLocaleDateString('tr-TR')}
+                </Text>
+              </View>
+            </View>
+            <View style={[
+              styles.durumBadge,
+              { backgroundColor: item.isActive ? '#4CAF50' : '#FF9800' }
+            ]}>
+              <Ionicons
+                name={item.isActive ? 'checkmark-circle' : 'pause-circle'}
+                size={12}
+                color="#fff"
+              />
+              <Text style={styles.durumText}>
+                {item.isActive ? 'Aktif' : 'Pasif'}
               </Text>
             </View>
           </View>
-          <View style={[
-            styles.durumBadge,
-            { backgroundColor: item.isActive ? '#4CAF50' : '#FF9800' }
-          ]}>
-            <Ionicons 
-              name={item.isActive ? 'checkmark-circle' : 'pause-circle'} 
-              size={12} 
-              color="#fff" 
-            />
-            <Text style={styles.durumText}>
-              {item.isActive ? 'Aktif' : 'Pasif'}
-            </Text>
-          </View>
-        </View>
-        
-        <Text style={styles.anketAciklama}>{item.aciklama}</Text>
-        
-        <View style={styles.anketBilgileri}>
-          <View style={styles.bilgiItem}>
-            <Ionicons name="help-circle-outline" size={14} color="#666" />
-            <Text style={styles.bilgiText}>
-              {anketStats[item.id]?.soruSayisi || item.sorular?.length || 0} Soru
-            </Text>
-          </View>
-          <View style={styles.bilgiItem}>
-            <Ionicons name="people-outline" size={14} color="#666" />
-            <Text style={styles.bilgiText}>
-              {anketStats[item.id]?.katilimciSayisi || 0} Katılımcı
-            </Text>
-          </View>
-        </View>
 
-        <View style={styles.anketActions}>
-          <TouchableOpacity
-            style={[styles.actionButton, styles.primaryButton]}
-            onPress={() => handleAnketSonuclari(item.id)}
-          >
-            <Ionicons name="analytics-outline" size={14} color="#fff" />
-            <Text style={styles.actionButtonText}>Sonuçlar</Text>
-          </TouchableOpacity>
-          
-          <TouchableOpacity
-            style={[styles.actionButton, styles.secondaryButton]}
-            onPress={() => handleAnketDuzenle(item)}
-          >
-            <Ionicons name="create-outline" size={14} color="#666" />
-            <Text style={styles.secondaryButtonText}>Düzenle</Text>
-          </TouchableOpacity>
-          
-          <TouchableOpacity
-            style={[styles.actionButton, styles.secondaryButton]}
-            onPress={() => handleAnketDurumDegistir(item.id, item.isActive)}
-          >
-            <Ionicons 
-              name={item.isActive ? 'pause-outline' : 'play-outline'} 
-              size={14} 
-              color="#666" 
-            />
-            <Text style={styles.secondaryButtonText}>
-              {item.isActive ? 'Durdur' : 'Başlat'}
-            </Text>
-          </TouchableOpacity>
-          
-          <TouchableOpacity
-            style={[styles.actionButton, styles.dangerButton]}
-            onPress={() => handleAnketSil(item.id)}
-          >
-            <Ionicons name="trash-outline" size={14} color="#fff" />
-            <Text style={styles.actionButtonText}>Sil</Text>
-          </TouchableOpacity>
-        </View>
-      </LinearGradient>
-    </View>
-  );
+          <Text style={styles.anketAciklama}>{item.aciklama}</Text>
+
+          <View style={styles.anketBilgileri}>
+            <View style={styles.bilgiItem}>
+              <Ionicons name="help-circle-outline" size={14} color="#666" />
+              <Text style={styles.bilgiText}>
+                {anketStats[item.id]?.soruSayisi || item.sorular?.length || 0} Soru
+              </Text>
+            </View>
+            <View style={styles.bilgiItem}>
+              <Ionicons name="people-outline" size={14} color="#666" />
+              <Text style={styles.bilgiText}>
+                {anketStats[item.id]?.katilimciSayisi || 0} Katılımcı
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.anketActions}>
+            <TouchableOpacity
+              style={[styles.actionButton, styles.primaryButton]}
+              onPress={() => handleAnketSonuclari(item.id)}
+            >
+              <Ionicons name="analytics-outline" size={14} color="#fff" />
+              <Text style={styles.actionButtonText}>Sonuçlar</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.actionButton, styles.secondaryButton]}
+              onPress={() => handleAnketDuzenle(item)}
+            >
+              <Ionicons name="create-outline" size={14} color="#666" />
+              <Text style={styles.secondaryButtonText}>Düzenle</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.actionButton, styles.secondaryButton]}
+              onPress={() => handleAnketDurumDegistir(item.id, item.isActive)}
+            >
+              <Ionicons
+                name={item.isActive ? 'pause-outline' : 'play-outline'}
+                size={14}
+                color="#666"
+              />
+              <Text style={styles.secondaryButtonText}>
+                {item.isActive ? 'Durdur' : 'Başlat'}
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.actionButton, styles.dangerButton]}
+              onPress={() => handleAnketSil(item.id)}
+            >
+              <Ionicons name="trash-outline" size={14} color="#fff" />
+              <Text style={styles.actionButtonText}>Sil</Text>
+            </TouchableOpacity>
+          </View>
+        </LinearGradient>
+      </View>
+    );
+  };
 
   const renderIstatistikler = () => (
     <View style={styles.istatistikContainer}>
@@ -309,48 +312,54 @@ const RehberSurveyView = ({ navigation }) => {
     </View>
   );
 
-  // Yükleme ekranı kaldırıldı - arka planda yükleme yapılacak
-
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="transparent" translucent={true} />
-      
-      <View style={styles.header}>
-        <SafeAreaView>
-          <View style={styles.headerContent}>
-            <View style={styles.headerLeft}>
-              <Ionicons name="clipboard-outline" size={24} color="#333" />
-              <Text style={styles.title}>Anket Yönetimi</Text>
-            </View>
-            <TouchableOpacity
-              style={styles.yeniAnketButton}
-              onPress={handleYeniAnket}
-            >
-              <Ionicons name="add" size={18} color="#fff" />
-              <Text style={styles.yeniAnketButtonText}>Yeni Anket</Text>
-            </TouchableOpacity>
-          </View>
-        </SafeAreaView>
-      </View>
-      
-      <SafeAreaView style={styles.safeArea}>
-        {renderIstatistikler()}
-        
-        <FlatList
-          data={anketler}
-          renderItem={renderAnketItem}
-          keyExtractor={(item) => item.id}
+      <StatusBar barStyle="light-content" backgroundColor="#49b66f" translucent={false} />
+
+      <SafeAreaView style={styles.safeArea} edges={['left', 'right', 'bottom']}>
+        <ScrollView
+          style={styles.scrollView}
+          showsVerticalScrollIndicator={false}
+          contentInsetAdjustmentBehavior="never"
+          automaticallyAdjustContentInsets={false}
           refreshControl={
-            <RefreshControl 
-              refreshing={refreshing} 
+            <RefreshControl
+              refreshing={refreshing}
               onRefresh={onRefresh}
-              tintColor="#667eea"
-              colors={['#667eea']}
+              tintColor="#49b66f"
+              colors={['#49b66f']}
             />
           }
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.listContainer}
-          ListEmptyComponent={
+          contentContainerStyle={styles.scrollContent}
+        >
+          {/* Scroll içinde Anket Yönetimi başlığı */}
+          <View style={styles.header}>
+            <View style={styles.headerContent}>
+              <View style={styles.headerLeft}>
+                <Ionicons name="clipboard-outline" size={24} color="#333" />
+                <Text style={styles.title}>Anket Yönetimi</Text>
+              </View>
+              <TouchableOpacity
+                style={styles.yeniAnketButton}
+                onPress={handleYeniAnket}
+              >
+                <Ionicons name="add" size={18} color="#fff" />
+                <Text style={styles.yeniAnketButtonText}>Yeni Anket</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          {renderIstatistikler()}
+
+          {anketler && anketler.length > 0 ? (
+            <View style={styles.listContainer}>
+              {anketler.map((item) => (
+                <View key={item.id}>
+                  {renderAnketItem({ item })}
+                </View>
+              ))}
+            </View>
+          ) : (
             <View style={styles.emptyContainer}>
               <View style={styles.emptyGradient}>
                 <Ionicons name="clipboard-outline" size={48} color="#999" />
@@ -369,8 +378,8 @@ const RehberSurveyView = ({ navigation }) => {
                 </TouchableOpacity>
               </View>
             </View>
-          }
-        />
+          )}
+        </ScrollView>
       </SafeAreaView>
     </View>
   );
@@ -380,16 +389,29 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f5f7fa',
-    marginTop: -34,
+    marginTop: -47,
+    paddingTop: 0,
   },
   safeArea: {
     flex: 1,
     backgroundColor: '#f5f7fa',
+    paddingTop: 0,
+    marginTop: 0,
+  },
+  scrollView: {
+    flex: 1,
+    marginTop: 0,
+  },
+  scrollContent: {
+    paddingBottom: 30,
+    paddingTop: 0,
   },
   header: {
     backgroundColor: '#fff',
     paddingHorizontal: 20,
-    paddingVertical: 16,
+    paddingTop: 0,
+    paddingBottom: 0,
+    marginTop: 0,
     borderBottomWidth: 1,
     borderBottomColor: '#f0f0f0',
     shadowColor: '#000',
@@ -402,7 +424,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: -24,
+    paddingVertical: 16,
   },
   headerLeft: {
     flexDirection: 'row',
@@ -415,13 +437,13 @@ const styles = StyleSheet.create({
     marginLeft: 12,
   },
   yeniAnketButton: {
-    backgroundColor: '#667eea',
+    backgroundColor: '#49b66f',
     paddingHorizontal: 20,
     paddingVertical: 12,
     borderRadius: 25,
     flexDirection: 'row',
     alignItems: 'center',
-    shadowColor: '#667eea',
+    shadowColor: '#49b66f',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -435,14 +457,14 @@ const styles = StyleSheet.create({
   },
   // Yükleme stilleri kaldırıldı
   istatistikContainer: {
-    marginBottom: 24,
-    marginHorizontal: 20,
-    marginTop: -24,
+    marginHorizontal: 16,
+    marginVertical: 6,
   },
   statsCard: {
     backgroundColor: '#fff',
     borderRadius: 16,
-    padding: 20,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.08,
@@ -457,7 +479,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   statsTitle: {
-    fontSize: 18,
+    fontSize: 16,
     color: '#2c3e50',
     fontWeight: '700',
     marginLeft: 10,
@@ -472,13 +494,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   statValue: {
-    fontSize: 28,
+    fontSize: 24,
     color: '#2c3e50',
     fontWeight: '800',
     marginBottom: 6,
   },
   statLabel: {
-    fontSize: 13,
+    fontSize: 12,
     color: '#7f8c8d',
     fontWeight: '600',
     textAlign: 'center',
@@ -584,21 +606,21 @@ const styles = StyleSheet.create({
   anketActions: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    gap: 8,
+    gap: 6,
   },
   actionButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 10,
+    paddingHorizontal: 8,
+    paddingVertical: 8,
     borderRadius: 12,
     flex: 1,
-    minHeight: 40,
+    minHeight: 36,
   },
   primaryButton: {
-    backgroundColor: '#667eea',
-    shadowColor: '#667eea',
+    backgroundColor: '#49b66f',
+    shadowColor: '#49b66f',
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.3,
     shadowRadius: 6,
@@ -619,13 +641,13 @@ const styles = StyleSheet.create({
   },
   actionButtonText: {
     color: '#fff',
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '600',
     marginLeft: 5,
   },
   secondaryButtonText: {
     color: '#7f8c8d',
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '600',
     marginLeft: 5,
   },
@@ -670,7 +692,7 @@ const styles = StyleSheet.create({
   emptyButton: {
     borderRadius: 25,
     overflow: 'hidden',
-    shadowColor: '#667eea',
+    shadowColor: '#49b66f',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -681,7 +703,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 24,
     paddingVertical: 14,
-    backgroundColor: '#667eea',
+    backgroundColor: '#49b66f',
   },
   emptyButtonText: {
     color: '#fff',

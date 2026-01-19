@@ -1,13 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
-  SafeAreaView,
   StatusBar,
-  Alert
+  Alert,
+  ScrollView
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useDispatch, useSelector } from 'react-redux';
@@ -20,16 +21,24 @@ const QuestionsScreen = ({ route, navigation }) => {
 
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [anketCevaplari, setAnketCevaplari] = useState({});
+  const scrollViewRef = useRef(null);
 
   const currentSoru = anketData.sorular[currentQuestionIndex];
   const isLastQuestion = currentQuestionIndex === anketData.sorular.length - 1;
   const isFirstQuestion = currentQuestionIndex === 0;
 
+  // Soru değiştiğinde ScrollView'i en üste kaydır
+  useEffect(() => {
+    if (scrollViewRef.current) {
+      scrollViewRef.current.scrollTo({ y: 0, animated: true });
+    }
+  }, [currentQuestionIndex]);
+
   const handleCevapVer = (soruIndex, cevap) => {
     console.log('=== DEBUG: handleCevapVer ===');
     console.log('Soru index:', soruIndex);
     console.log('Cevap:', cevap);
-    
+
     setAnketCevaplari(prev => {
       const newCevaplar = {
         ...prev,
@@ -77,13 +86,13 @@ const QuestionsScreen = ({ route, navigation }) => {
         secenekler: soru.secenekler,
         cevap: anketCevaplari[index]
       }));
-      
+
       const result = await dispatch(submitAnketSonuc({
         ogrenciId: currentUser.id,
         anketId: anketData.id,
         cevaplar: cevaplarWithQuestions
       })).unwrap();
-      
+
       Alert.alert('Başarılı', 'Anket başarıyla tamamlandı!', [
         {
           text: 'Tamam',
@@ -115,12 +124,12 @@ const QuestionsScreen = ({ route, navigation }) => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="transparent" translucent={true} />
-      
+
       {/* Header */}
       <LinearGradient
-        colors={['#667eea', '#764ba2']}
+        colors={['#49b66f', '#1db4e2']}
         style={styles.header}
       >
         <View style={styles.headerContent}>
@@ -141,7 +150,7 @@ const QuestionsScreen = ({ route, navigation }) => {
       <View style={styles.progressContainer}>
         <View style={styles.progressBar}>
           <LinearGradient
-            colors={['#667eea', '#764ba2']}
+            colors={['#49b66f', '#1db4e2']}
             style={[
               styles.progressFill,
               { width: `${((currentQuestionIndex + 1) / anketData.sorular.length) * 100}%` }
@@ -150,8 +159,14 @@ const QuestionsScreen = ({ route, navigation }) => {
         </View>
       </View>
 
-      {/* Soru Kartı */}
-      <View style={styles.content}>
+      {/* Scrollable Content */}
+      <ScrollView
+        ref={scrollViewRef}
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Soru Kartı */}
         <View style={styles.soruCard}>
           <View style={styles.soruNumberContainer}>
             <Text style={styles.soruNumber}>Soru {currentQuestionIndex + 1}</Text>
@@ -189,56 +204,58 @@ const QuestionsScreen = ({ route, navigation }) => {
             </TouchableOpacity>
           ))}
         </View>
-      </View>
+      </ScrollView>
 
       {/* Navigation Butonları */}
-      <View style={styles.footer}>
-        <TouchableOpacity
-          style={[styles.navButton, styles.geriButton, isFirstQuestion && styles.disabledButton]}
-          onPress={handleOncekiSoru}
-          disabled={isFirstQuestion}
-        >
-          <Ionicons 
-            name="arrow-back" 
-            size={20} 
-            color={isFirstQuestion ? '#999' : '#fff'} 
-          />
-          <Text style={[styles.navButtonText, isFirstQuestion && styles.disabledButtonText]}>
-            Geri
-          </Text>
-        </TouchableOpacity>
+      <SafeAreaView edges={['bottom']} style={styles.footerSafeArea}>
+        <View style={styles.footer}>
+          <TouchableOpacity
+            style={[styles.navButton, styles.geriButton, isFirstQuestion && styles.disabledButton]}
+            onPress={handleOncekiSoru}
+            disabled={isFirstQuestion}
+          >
+            <Ionicons
+              name="arrow-back"
+              size={20}
+              color={isFirstQuestion ? '#999' : '#fff'}
+            />
+            <Text style={[styles.navButtonText, isFirstQuestion && styles.disabledButtonText]}>
+              Geri
+            </Text>
+          </TouchableOpacity>
 
-        {isLastQuestion ? (
-          <TouchableOpacity
-            style={[styles.navButton, styles.tamamlaButton]}
-            onPress={handleAnketiTamamla}
-          >
-            <Text style={styles.navButtonText}>Tamamla</Text>
-            <Ionicons name="checkmark-circle" size={20} color="#fff" />
-          </TouchableOpacity>
-        ) : (
-          <TouchableOpacity
-            style={[styles.navButton, styles.ileriButton]}
-            onPress={handleSonrakiSoru}
-          >
-            <Text style={styles.navButtonText}>İleri</Text>
-            <Ionicons name="arrow-forward" size={20} color="#fff" />
-          </TouchableOpacity>
-        )}
-      </View>
-    </SafeAreaView>
+          {isLastQuestion ? (
+            <TouchableOpacity
+              style={[styles.navButton, styles.tamamlaButton]}
+              onPress={handleAnketiTamamla}
+            >
+              <Text style={styles.navButtonText}>Tamamla</Text>
+              <Ionicons name="checkmark-circle" size={20} color="#fff" />
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity
+              style={[styles.navButton, styles.ileriButton]}
+              onPress={handleSonrakiSoru}
+            >
+              <Text style={styles.navButtonText}>İleri</Text>
+              <Ionicons name="arrow-forward" size={20} color="#fff" />
+            </TouchableOpacity>
+          )}
+        </View>
+      </SafeAreaView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: '#f5f7fa',
   },
   header: {
+    paddingHorizontal: 20,
     paddingTop: 50,
     paddingBottom: 20,
-    paddingHorizontal: 20,
   },
   headerContent: {
     flexDirection: 'row',
@@ -283,9 +300,13 @@ const styles = StyleSheet.create({
     height: '100%',
     borderRadius: 4,
   },
-  content: {
+  scrollView: {
     flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
     padding: 20,
+    paddingBottom: 20,
   },
   soruCard: {
     backgroundColor: '#fff',
@@ -304,7 +325,7 @@ const styles = StyleSheet.create({
   soruNumber: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#667eea',
+    color: '#49b66f',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
@@ -331,7 +352,7 @@ const styles = StyleSheet.create({
   },
   secenekButtonSelected: {
     backgroundColor: '#f0f4ff',
-    borderColor: '#667eea',
+    borderColor: '#49b66f',
   },
   secenekContent: {
     flexDirection: 'row',
@@ -348,13 +369,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   radioButtonSelected: {
-    borderColor: '#667eea',
+    borderColor: '#49b66f',
   },
   radioButtonInner: {
     width: 12,
     height: 12,
     borderRadius: 6,
-    backgroundColor: '#667eea',
+    backgroundColor: '#49b66f',
   },
   secenekText: {
     fontSize: 16,
@@ -363,8 +384,11 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   secenekTextSelected: {
-    color: '#667eea',
+    color: '#49b66f',
     fontWeight: '600',
+  },
+  footerSafeArea: {
+    backgroundColor: '#fff',
   },
   footer: {
     flexDirection: 'row',
@@ -388,7 +412,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#6c757d',
   },
   ileriButton: {
-    backgroundColor: '#667eea',
+    backgroundColor: '#49b66f',
   },
   tamamlaButton: {
     backgroundColor: '#28a745',

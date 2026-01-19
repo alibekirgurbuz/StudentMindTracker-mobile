@@ -25,7 +25,7 @@ const RehberMainScreen = ({ navigation }) => {
   const { token, isAuthenticated, userEmail, currentUser } = useSelector(state => state.user || {});
   const { anketler: rehberAnketleri, isLoading: anketLoading } = useSelector(state => state.rehber || {});
   const userRole = currentUser?.role;
-  
+
   const [refreshing, setRefreshing] = useState(false);
 
   // Anket verilerini yükle
@@ -107,9 +107,9 @@ const RehberMainScreen = ({ navigation }) => {
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="transparent" translucent={true} />
-      
+
       <LinearGradient
-        colors={['#667eea', '#764ba2']}
+        colors={['#49b66f', '#1db4e2']}
         style={styles.header}
       >
         <View style={styles.headerContent}>
@@ -128,7 +128,7 @@ const RehberMainScreen = ({ navigation }) => {
       </LinearGradient>
 
       <SafeAreaView style={styles.safeArea}>
-        <ScrollView 
+        <ScrollView
           style={styles.content}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={[styles.scrollContent, { paddingBottom: 100 }]} // Tab bar için ek padding
@@ -136,113 +136,113 @@ const RehberMainScreen = ({ navigation }) => {
             <RefreshControl
               refreshing={refreshing}
               onRefresh={onRefresh}
-              tintColor="#667eea"
-              colors={['#667eea']}
+              tintColor="#49b66f"
+              colors={['#49b66f']}
             />
           }
         >
-        <View style={styles.dashboard}>
-          {/* Rehber İstatistik Kartları */}
-          <View style={styles.statsContainer}>
-            <View style={styles.statsGrid}>
-              <StatCard
-                title="Sorumlu Öğrenci Sayısı"
-                value={currentUser?.rehberDetay?.ogrenciler?.length?.toString() || "0"}
-                icon="people-outline"
-                color="#4CAF50"
-                onPress={() => Alert.alert('Öğrenciler', 'Sorumlu öğrenci listesi açılacak')}
-              />
-              <StatCard
-                title="Aktif Ders"
-                value="8"
-                icon="book-outline"
-                color="#2196F3"
-                onPress={() => Alert.alert('Dersler', 'Aktif ders listesi açılacak')}
-              />
-              <StatCard
-                title="Aktif Anket Sayısı"
-                value={anketLoading ? "..." : aktifAnketSayisi.toString()}
-                icon="clipboard-outline"
-                color="#FF9800"
-                onPress={() => Alert.alert('Testler', 'Bu hafta testleri açılacak')}
-              />
-              <StatCard
-                title="Tamamlanan Anket"
-                value={anketLoading ? "..." : tamamlananAnketSayisi.toString()}
-                icon="checkmark-done-outline"
-                color="#9C27B0"
-                onPress={() => Alert.alert('Tamamlanan Anketler', 'Tamamlanan anket listesi')}
-              />
+          <View style={styles.dashboard}>
+            {/* Rehber İstatistik Kartları */}
+            <View style={styles.statsContainer}>
+              <View style={styles.statsGrid}>
+                <StatCard
+                  title="Öğrencilerim"
+                  value={currentUser?.rehberDetay?.ogrenciler?.length?.toString() || "0"}
+                  icon="people-outline"
+                  color="#4CAF50"
+                  onPress={() => Alert.alert('Öğrenciler', 'Sorumlu öğrenci listesi açılacak')}
+                />
+                <StatCard
+                  title="Raporlar"
+                  value={currentUser?.rehberDetay?.analizSonuclari?.length?.toString() || "0"}
+                  icon="analytics-outline"
+                  color="#2196F3"
+                  onPress={() => navigation.navigate('SurveyAnalysis')}
+                />
+                <StatCard
+                  title="Aktif Anketler"
+                  value={anketLoading ? "..." : aktifAnketSayisi.toString()}
+                  icon="clipboard-outline"
+                  color="#FF9800"
+                  onPress={() => Alert.alert('Testler', 'Bu hafta testleri açılacak')}
+                />
+                <StatCard
+                  title="Pasif Anketler"
+                  value={anketLoading ? "..." : tamamlananAnketSayisi.toString()}
+                  icon="checkmark-done-outline"
+                  color="#9C27B0"
+                  onPress={() => Alert.alert('Tamamlanan Anketler', 'Tamamlanan anket listesi')}
+                />
+              </View>
             </View>
-          </View>
 
-          {/* Rehber Hızlı Eylemler */}
-          <View style={styles.quickActionsContainer}>
-            <Text style={styles.sectionTitle}>Rehber Eylemleri</Text>
-            <View style={styles.quickActionsGrid}>
-              <QuickAction
-                title="Öğrenci Listesi"
-                icon="people-outline"
-                color="#4CAF50"
-                onPress={() => Alert.alert('Öğrenci Listesi', 'Öğrenci listesi açılacak')}
-              />
-              <QuickAction
-                title="Ders Planı"
-                icon="calendar-outline"
-                color="#2196F3"
-                onPress={() => Alert.alert('Ders Planı', 'Ders planı açılacak')}
-              />
-              <QuickAction
-                title="Test Oluştur"
-                icon="create-outline"
-                color="#FF9800"
-                onPress={() => Alert.alert('Test Oluştur', 'Test oluşturma formu açılacak')}
-              />
-              <QuickAction
-                title="Raporlar"
-                icon="analytics-outline"
-                color="#9C27B0"
-                onPress={() => Alert.alert('Raporlar', 'Rehber raporları açılacak')}
-              />
+            {/* Rehber Hızlı Eylemler */}
+            <View style={styles.quickActionsContainer}>
+              <Text style={styles.sectionTitle}>Hızlı Eylemler</Text>
+              <View style={styles.quickActionsGrid}>
+                <QuickAction
+                  title="Öğrenci Listesi"
+                  icon="people-outline"
+                  color="#4CAF50"
+                  onPress={() => navigation.navigate('StudentList')}
+                />
+                <QuickAction
+                  title="Rehberlik Planı"
+                  icon="calendar-outline"
+                  color="#2196F3"
+                  onPress={() => Alert.alert('Ders Planı', 'Ders planı açılacak')}
+                />
+                <QuickAction
+                  title="Anket Oluştur"
+                  icon="create-outline"
+                  color="#FF9800"
+                  onPress={() => navigation.navigate('CreateSurvey')}
+                />
+                <QuickAction
+                  title="Raporlar"
+                  icon="analytics-outline"
+                  color="#9C27B0"
+                  onPress={() => navigation.navigate('SurveyAnalysis')}
+                />
+              </View>
             </View>
-          </View>
 
-          {/* Son Rehber Aktiviteler */}
-          <View style={styles.recentContainer}>
-            <Text style={styles.sectionTitle}>Son Rehber Aktiviteler</Text>
-            <View style={styles.activityList}>
-              <View style={styles.activityItem}>
-                <View style={[styles.activityIcon, { backgroundColor: '#4CAF50' }]}>
-                  <Ionicons name="person-add" size={16} color="#fff" />
+            {/* Son Rehber Aktiviteler */}
+            <View style={styles.recentContainer}>
+              <Text style={styles.sectionTitle}>Son Rehber Aktiviteler</Text>
+              <View style={styles.activityList}>
+                <View style={styles.activityItem}>
+                  <View style={[styles.activityIcon, { backgroundColor: '#4CAF50' }]}>
+                    <Ionicons name="person-add" size={16} color="#fff" />
+                  </View>
+                  <View style={styles.activityContent}>
+                    <Text style={styles.activityTitle}>Yeni öğrenci atandı</Text>
+                    <Text style={styles.activityTime}>2 saat önce</Text>
+                  </View>
                 </View>
-                <View style={styles.activityContent}>
-                  <Text style={styles.activityTitle}>Yeni öğrenci atandı</Text>
-                  <Text style={styles.activityTime}>2 saat önce</Text>
+
+                <View style={styles.activityItem}>
+                  <View style={[styles.activityIcon, { backgroundColor: '#2196F3' }]}>
+                    <Ionicons name="book" size={16} color="#fff" />
+                  </View>
+                  <View style={styles.activityContent}>
+                    <Text style={styles.activityTitle}>Matematik dersi tamamlandı</Text>
+                    <Text style={styles.activityTime}>4 saat önce</Text>
+                  </View>
                 </View>
-              </View>
-              
-              <View style={styles.activityItem}>
-                <View style={[styles.activityIcon, { backgroundColor: '#2196F3' }]}>
-                  <Ionicons name="book" size={16} color="#fff" />
-                </View>
-                <View style={styles.activityContent}>
-                  <Text style={styles.activityTitle}>Matematik dersi tamamlandı</Text>
-                  <Text style={styles.activityTime}>4 saat önce</Text>
-                </View>
-              </View>
-              
-              <View style={styles.activityItem}>
-                <View style={[styles.activityIcon, { backgroundColor: '#FF9800' }]}>
-                  <Ionicons name="clipboard" size={16} color="#fff" />
-                </View>
-                <View style={styles.activityContent}>
-                  <Text style={styles.activityTitle}>Test sonuçları değerlendirildi</Text>
-                  <Text style={styles.activityTime}>6 saat önce</Text>
+
+                <View style={styles.activityItem}>
+                  <View style={[styles.activityIcon, { backgroundColor: '#FF9800' }]}>
+                    <Ionicons name="clipboard" size={16} color="#fff" />
+                  </View>
+                  <View style={styles.activityContent}>
+                    <Text style={styles.activityTitle}>Test sonuçları değerlendirildi</Text>
+                    <Text style={styles.activityTime}>6 saat önce</Text>
+                  </View>
                 </View>
               </View>
             </View>
           </View>
-        </View>
         </ScrollView>
       </SafeAreaView>
     </View>
@@ -260,7 +260,7 @@ const styles = StyleSheet.create({
   },
   header: {
     paddingHorizontal: 20,
-    paddingTop: 50, // StatusBar alanı için ek padding
+    paddingTop: 60, // StatusBar alanı için ek padding
     paddingBottom: 20,
   },
   headerContent: {
@@ -303,7 +303,7 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    marginTop: -34,
+    marginTop: -46,
   },
   scrollContent: {
     paddingBottom: 20,
@@ -358,6 +358,12 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#666',
     marginTop: 2,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#333',
+    marginBottom: 20,
   },
   quickActionsContainer: {
     marginBottom: 30,

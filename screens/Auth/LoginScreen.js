@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
-import { 
-  View, 
-  Text, 
-  TouchableOpacity, 
-  StyleSheet, 
-  Alert, 
+import React, { useState, useEffect } from 'react';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  Alert,
   ScrollView,
   Dimensions,
   KeyboardAvoidingView,
@@ -14,9 +14,8 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useDispatch, useSelector } from 'react-redux';
-import { loginUser, clearError, clearUser } from '../../redux/slice/userSlice';
-import { login, testConnection } from '../../services/authService';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { loginUser, clearError } from '../../redux/slice/userSlice';
+import { testConnection } from '../../services/authService';
 import CustomTextInput from '../../components/custom/customTextInput';
 import CustomButton from '../../components/custom/customButton';
 
@@ -25,8 +24,7 @@ const { width, height } = Dimensions.get('window');
 const LoginScreen = ({ navigation }) => {
   const dispatch = useDispatch();
   const { isLoading, error, isAuthenticated, currentUser } = useSelector(state => state.user || {});
-  
-  
+
   // Local state for form
   const [loginForm, setLoginForm] = useState({
     email: '',
@@ -35,7 +33,17 @@ const LoginScreen = ({ navigation }) => {
     emailFocused: false,
     passwordFocused: false
   });
-  
+
+  // Local error state
+  const [errorMessage, setErrorMessage] = useState('');
+
+  // Redux error'u izle
+  useEffect(() => {
+    if (error && !isLoading) {
+      setErrorMessage('Giriş bilgileri hatalı');
+      dispatch(clearError());
+    }
+  }, [error, isLoading, dispatch]);
 
   const handleTestConnection = async () => {
     try {
@@ -47,55 +55,44 @@ const LoginScreen = ({ navigation }) => {
   };
 
   const handleLogin = async () => {
+    // Önceki hataları temizle
+    setErrorMessage('');
+
     // 1. Alanların boş olup olmadığını kontrol et
     if (!loginForm.email || !loginForm.password) {
-      Alert.alert('Hata', 'Lütfen e-posta ve şifrenizi girin.');
+      setErrorMessage('Lütfen e-posta ve şifrenizi girin.');
       return;
     }
 
     // 2. E-posta formatını kontrol et
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(loginForm.email)) {
-      Alert.alert('Hata', 'Lütfen geçerli bir e-posta adresi girin.');
+      setErrorMessage('Lütfen geçerli bir e-posta adresi girin.');
       return;
     }
 
-    try {
-      // 3. Redux action ile login işlemini gerçekleştir
-      const result = await dispatch(loginUser({
-        email: loginForm.email,
-        password: loginForm.password
-      }));
-
-      if (loginUser.fulfilled.match(result)) {
-        // Başarılı giriş - navigasyon otomatik olarak MainStack'e geçecektir
-        console.log('Login successful:', result.payload);
-      } else {
-        // Hata durumu
-        Alert.alert('Giriş Başarısız', result.payload || 'Bilinmeyen hata');
-      }
-
-    } catch (err) {
-      // 6. Hata oluşursa kullanıcıyı bilgilendir
-      console.error('Login error:', err);
-      Alert.alert('Giriş Başarısız', err.message);
-    }
+    // 3. Redux action ile login işlemini gerçekleştir
+    await dispatch(loginUser({
+      email: loginForm.email,
+      password: loginForm.password
+    }));
+    // Hata durumu - useEffect Redux error'u otomatik yakalayacak
   };
 
   return (
-    <KeyboardAvoidingView 
-      style={styles.container} 
+    <KeyboardAvoidingView
+      style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <StatusBar barStyle="light-content" backgroundColor="#667eea" />
-      
+      <StatusBar barStyle="light-content" backgroundColor="#49b66f" />
+
       <LinearGradient
-        colors={['#667eea', '#764ba2', '#f093fb']}
+        colors={['#49b66f', '#3dbdc2', '#1db4e2']}
         style={styles.gradient}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
       >
-        <ScrollView 
+        <ScrollView
           contentContainerStyle={styles.scrollContainer}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
@@ -116,37 +113,44 @@ const LoginScreen = ({ navigation }) => {
               <CustomTextInput
                 placeholder="E-posta adresiniz"
                 value={loginForm.email}
-                onChangeText={(text) => setLoginForm({...loginForm, email: text})}
+                onChangeText={(text) => setLoginForm({ ...loginForm, email: text })}
                 keyboardType="email-address"
                 autoCapitalize="none"
                 iconName="mail-outline"
                 focused={loginForm.emailFocused}
-                onFocus={() => setLoginForm({...loginForm, emailFocused: true})}
-                onBlur={() => setLoginForm({...loginForm, emailFocused: false})}
+                onFocus={() => setLoginForm({
+                  ...loginForm,
+                  emailFocused: true,
+                  passwordFocused: false
+                })}
+                onBlur={() => setLoginForm({ ...loginForm, emailFocused: false })}
               />
 
               {/* Şifre Girişi */}
               <CustomTextInput
                 placeholder="Şifreniz"
                 value={loginForm.password}
-                onChangeText={(text) => setLoginForm({...loginForm, password: text})}
+                onChangeText={(text) => setLoginForm({ ...loginForm, password: text })}
                 secureTextEntry={!loginForm.showPassword}
                 iconName="lock-closed-outline"
                 focused={loginForm.passwordFocused}
-                onFocus={() => setLoginForm({...loginForm, passwordFocused: true})}
-                onBlur={() => setLoginForm({...loginForm, passwordFocused: false})}
-                onTogglePassword={() => setLoginForm({...loginForm, showPassword: !loginForm.showPassword})}
+                onFocus={() => setLoginForm({
+                  ...loginForm,
+                  emailFocused: false,
+                  passwordFocused: true
+                })}
+                onBlur={() => setLoginForm({ ...loginForm, passwordFocused: false })}
+                onTogglePassword={() => setLoginForm({ ...loginForm, showPassword: !loginForm.showPassword })}
                 showPassword={loginForm.showPassword}
               />
 
               {/* Hata Mesajı */}
-              {error && (
+              {errorMessage && (
                 <View style={styles.errorContainer}>
-                  <Ionicons name="alert-circle-outline" size={16} color="#ff4757" />
-                  <Text style={styles.errorText}>{error}</Text>
+                  <Text style={styles.errorText}>{errorMessage}</Text>
                 </View>
               )}
-              
+
               {/* Giriş Butonu */}
               <CustomButton
                 title="Giriş Yap"
@@ -161,14 +165,12 @@ const LoginScreen = ({ navigation }) => {
                 <Text style={styles.forgotPasswordText}>Şifremi Unuttum</Text>
               </TouchableOpacity>
 
-              {/* Server Test Butonu */}
-              <TouchableOpacity 
+              {/* Server Test Butonu: <TouchableOpacity
                 style={styles.testButton}
                 onPress={handleTestConnection}
               >
                 <Text style={styles.testButtonText}>Server Bağlantısını Test Et</Text>
-              </TouchableOpacity>
-              
+              </TouchableOpacity>*/}              
               {/* Kayıt Sayfasına Yönlendirme */}
               <View style={styles.registerContainer}>
                 <Text style={styles.registerText}>Hesabınız yok mu? </Text>
@@ -274,31 +276,30 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
   },
   inputFocused: {
-    borderColor: '#667eea',
+    borderColor: '#49b66f',
   },
   eyeIcon: {
     padding: 5,
   },
   errorContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
     backgroundColor: '#ffebee',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
     borderRadius: 8,
     marginBottom: 20,
+    borderLeftWidth: 4,
+    borderLeftColor: '#ff4757',
   },
   errorText: {
     color: '#ff4757',
     fontSize: 14,
-    marginLeft: 8,
-    flex: 1,
+    fontWeight: '500',
   },
   button: {
     borderRadius: 12,
     marginTop: 10,
     marginBottom: 15,
-    shadowColor: '#667eea',
+    shadowColor: '#49b66f',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -326,7 +327,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   forgotPasswordText: {
-    color: '#667eea',
+    color: '#49b66f',
     fontSize: 14,
     fontWeight: '500',
   },
@@ -341,7 +342,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   registerLink: {
-    color: '#667eea',
+    color: '#49b66f',
     fontSize: 14,
     fontWeight: '600',
   },
